@@ -3,13 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreateProjectForm } from "@/components/forms/CreateProjectForm";
-import { FolderOpen, GitBranch, PlayCircle, Image, Calendar, Activity } from "lucide-react";
-import { useProjects } from "@/hooks/useProjects";
-import { usePipelinesByProjectId } from "@/hooks/usePipelines";
-import { useSequencesByPipelineId } from "@/hooks/useSequences";
+import { FolderOpen, GitBranch, PlayCircle, Image, Calendar, Activity, Trash2 } from "lucide-react";
+import { useProjects, useDeleteProject } from "@/hooks/useProjects";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const ProjectsPage = () => {
   const { data: projects = [], isLoading, error } = useProjects();
+  const deleteProject = useDeleteProject();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -134,11 +134,37 @@ const ProjectsPage = () => {
                   <Calendar className="h-3 w-3 mr-1" />
                   {new Date(project.created_at).toLocaleDateString()}
                 </div>
-                <Link to={`/projects/${project.id}/pipelines`}>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    View Pipelines
-                  </Button>
-                </Link>
+                <div className="flex items-center space-x-2">
+                  <Link to={`/projects/${project.id}/pipelines`}>
+                    <Button variant="outline" size="sm" className="text-xs">
+                      View Pipelines
+                    </Button>
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{project.name}"? This will also delete all pipelines, sequences, and frames associated with this project. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteProject.mutate(project.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             </CardContent>
           </Card>

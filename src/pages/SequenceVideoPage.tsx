@@ -2,14 +2,24 @@ import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { VideoPlayer } from "@/components/sequences/VideoPlayer";
 import { SequenceDetails } from "@/components/sequences/SequenceDetails";
-import { getProjectById, getPipelineById, getSequenceById } from "@/data/mockData";
-import { ArrowLeft } from "lucide-react";
+import { useSequenceById } from "@/hooks/useSequences";
+import { usePipelineById } from "@/hooks/usePipelines";
+import { useProjectById } from "@/hooks/useProjects";
+import { ArrowLeft, Loader2 } from "lucide-react";
 
 const SequenceVideoPage = () => {
   const { projectId, pipelineId, sequenceId } = useParams();
-  const project = projectId ? getProjectById(projectId) : null;
-  const pipeline = pipelineId ? getPipelineById(pipelineId) : null;
-  const sequence = sequenceId ? getSequenceById(sequenceId) : null;
+  const { data: project } = useProjectById(projectId!);
+  const { data: pipeline } = usePipelineById(pipelineId!);
+  const { data: sequence, isLoading } = useSequenceById(sequenceId!);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!project || !pipeline || !sequence) {
     return (
@@ -34,16 +44,12 @@ const SequenceVideoPage = () => {
         <h1 className="text-3xl font-bold text-foreground">Video Player</h1>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Video Player - Takes 2/3 of the space */}
-        <div className="lg:col-span-2">
-          <VideoPlayer sequenceId={sequence.id} fps={sequence.fps} />
-        </div>
+      <div className="space-y-6">
+        {/* Video Player with integrated frame attributes */}
+        <VideoPlayer sequenceId={sequence.id} fps={sequence.fps || 30} />
         
-        {/* Sequence Details - Takes 1/3 of the space */}
-        <div className="lg:col-span-1">
-          <SequenceDetails sequence={sequence} />
-        </div>
+        {/* Sequence Details */}
+        <SequenceDetails sequence={sequence} />
       </div>
     </div>
   );

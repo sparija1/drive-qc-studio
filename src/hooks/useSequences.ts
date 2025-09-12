@@ -72,6 +72,38 @@ export const useCreateSequence = () => {
   });
 };
 
+export const useDeleteSequence = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('sequences')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sequences'] });
+      toast({
+        title: "Success",
+        description: "Sequence deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete sequence",
+        variant: "destructive",
+      });
+      console.error('Error deleting sequence:', error);
+    },
+  });
+};
+
 export const useSequenceById = (id: string) => {
   return useQuery({
     queryKey: ['sequence', id],

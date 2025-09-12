@@ -68,6 +68,38 @@ export const useCreatePipeline = () => {
   });
 };
 
+export const useDeletePipeline = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('pipelines')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pipelines'] });
+      toast({
+        title: "Success",
+        description: "Pipeline deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete pipeline",
+        variant: "destructive",
+      });
+      console.error('Error deleting pipeline:', error);
+    },
+  });
+};
+
 export const usePipelineById = (id: string) => {
   return useQuery({
     queryKey: ['pipeline', id],

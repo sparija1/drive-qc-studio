@@ -3,14 +3,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreatePipelineForm } from "@/components/forms/CreatePipelineForm";
-import { GitBranch, PlayCircle, Image, Calendar, Activity, ArrowLeft } from "lucide-react";
+import { GitBranch, PlayCircle, Image, Calendar, Activity, ArrowLeft, Trash2 } from "lucide-react";
 import { useProjectById } from "@/hooks/useProjects";
-import { usePipelinesByProjectId } from "@/hooks/usePipelines";
+import { usePipelinesByProjectId, useDeletePipeline } from "@/hooks/usePipelines";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const PipelinesPage = () => {
   const { projectId } = useParams();
   const { data: project, isLoading: projectLoading } = useProjectById(projectId || '');
   const { data: pipelines = [], isLoading: pipelinesLoading } = usePipelinesByProjectId(projectId || '');
+  const deletePipeline = useDeletePipeline();
 
   const isLoading = projectLoading || pipelinesLoading;
 
@@ -108,11 +110,37 @@ const PipelinesPage = () => {
                   <Calendar className="h-3 w-3 mr-1" />
                   {new Date(pipeline.created_at).toLocaleDateString()}
                 </div>
-                <Link to={`/projects/${projectId}/pipelines/${pipeline.id}/sequences`}>
-                  <Button variant="outline" size="sm" className="text-xs">
-                    View Sequences
-                  </Button>
-                </Link>
+                <div className="flex items-center space-x-2">
+                  <Link to={`/projects/${projectId}/pipelines/${pipeline.id}/sequences`}>
+                    <Button variant="outline" size="sm" className="text-xs">
+                      View Sequences
+                    </Button>
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Pipeline</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{pipeline.name}"? This will also delete all sequences and frames associated with this pipeline. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deletePipeline.mutate(pipeline.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             </CardContent>
           </Card>

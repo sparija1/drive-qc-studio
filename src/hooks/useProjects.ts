@@ -64,6 +64,38 @@ export const useCreateProject = () => {
   });
 };
 
+export const useDeleteProject = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive",
+      });
+      console.error('Error deleting project:', error);
+    },
+  });
+};
+
 export const useProjectById = (id: string) => {
   return useQuery({
     queryKey: ['project', id],

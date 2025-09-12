@@ -3,16 +3,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreateSequenceForm } from "@/components/forms/CreateSequenceForm";
-import { getProjectById, getPipelineById, getSequencesByPipelineId } from "@/data/mockData";
-import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route } from "lucide-react";
+import { useSequencesByPipelineId, useDeleteSequence } from "@/hooks/useSequences";
+import { usePipelineById } from "@/hooks/usePipelines";
+import { useProjectById } from "@/hooks/useProjects";
+import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route, Trash2, Loader2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const SequencesPage = () => {
   const { projectId, pipelineId } = useParams();
-  const project = projectId ? getProjectById(projectId) : null;
-  const pipeline = pipelineId ? getPipelineById(pipelineId) : null;
-  const sequences = pipelineId ? getSequencesByPipelineId(pipelineId) : [];
+  const { data: project } = useProjectById(projectId!);
+  const { data: pipeline } = usePipelineById(pipelineId!);
+  const { data: sequences = [], isLoading, error } = useSequencesByPipelineId(pipelineId!);
+  const deleteSequence = useDeleteSequence();
 
-  if (!project || !pipeline) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error || !project || !pipeline) {
     return (
       <div className="text-center py-12">
         <h3 className="text-lg font-medium text-foreground mb-2">Pipeline not found</h3>
@@ -72,133 +84,65 @@ const SequencesPage = () => {
         {sequences.map((sequence) => (
           <Card key={sequence.id} className="shadow-card hover:shadow-elevated transition-smooth gradient-surface border-border/50">
             <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg text-foreground mb-2">{sequence.name}</CardTitle>
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Badge className={getTimeOfDayColor(sequence.aggregatedAttributes.predominantTimeOfDay)} variant="outline">
-                      {sequence.aggregatedAttributes.predominantTimeOfDay}
-                    </Badge>
-                    <Badge variant="outline" className="text-muted-foreground">
-                      {sequence.aggregatedAttributes.predominantRoadType}
-                    </Badge>
-                    <Badge className={getStatusColor(sequence.status)} variant="outline">
-                      {sequence.status}
-                    </Badge>
-                  </div>
-                </div>
-                <div className={`text-right ${getAccuracyColor(sequence.avgAccuracyScore)}`}>
-                  <div className="text-sm font-medium">Accuracy</div>
-                  <div className="text-lg font-bold">
-                    {(sequence.avgAccuracyScore * 100).toFixed(1)}%
-                  </div>
+              <div className="flex items-center justify-between">
+                <Link 
+                  to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}
+                  className="text-lg font-semibold text-foreground hover:text-primary transition-smooth"
+                >
+                  {sequence.name}
+                </Link>
+                <div className="flex items-center space-x-2">
+                  <Badge 
+                    variant={sequence.status === 'processed' ? 'default' : 'secondary'}
+                    className="capitalize"
+                  >
+                    {sequence.status}
+                  </Badge>
+                  <Link to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}>
+                    <Button variant="outline" size="sm">
+                      <Play className="h-4 w-4 mr-2" />
+                      Play
+                    </Button>
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Sequence</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{sequence.name}"? This will also delete all frames associated with this sequence. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteSequence.mutate(sequence.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
               </div>
             </CardHeader>
             
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Image className="h-4 w-4 mr-1" />
-                    Frames
-                  </div>
-                  <div className="text-lg font-semibold text-foreground">{sequence.frameCount}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 mr-1" />
-                    Duration
-                  </div>
-                  <div className="text-lg font-semibold text-foreground">{sequence.duration}s</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Camera className="h-4 w-4 mr-1" />
-                    FPS
-                  </div>
-                  <div className="text-lg font-semibold text-foreground">{sequence.fps}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Target className="h-4 w-4 mr-1" />
-                    Accuracy
-                  </div>
-                  <div className={`text-lg font-semibold ${getAccuracyColor(sequence.avgAccuracyScore)}`}>
-                    {(sequence.avgAccuracyScore * 100).toFixed(1)}%
-                  </div>
-                </div>
+              <div className="text-sm text-muted-foreground">
+                <span>FPS: {sequence.fps || 'N/A'}</span>
+                <span className="mx-2">•</span>
+                <span>Frames: {sequence.total_frames || 0}</span>
+                <span className="mx-2">•</span>
+                <span>Duration: {sequence.duration ? `${sequence.duration}s` : 'N/A'}</span>
               </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Car className="h-4 w-4 mr-1" />
-                    Vehicles
-                  </div>
-                  <div className="text-lg font-semibold text-foreground">{sequence.aggregatedAttributes.avgVehicleCount}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Users className="h-4 w-4 mr-1" />
-                    Pedestrians
-                  </div>
-                  <div className="text-lg font-semibold text-foreground">{sequence.aggregatedAttributes.avgPedestrianCount}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Route className="h-4 w-4 mr-1" />
-                    Lanes
-                  </div>
-                  <div className="text-lg font-semibold text-foreground">{sequence.aggregatedAttributes.avgLaneCount}</div>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Target className="h-4 w-4 mr-1" />
-                    Traffic
-                  </div>
-                  <div className="text-lg font-semibold text-foreground capitalize">
-                    {sequence.aggregatedAttributes.avgTrafficDensity}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-                <div className="text-sm font-medium text-foreground">Conditions</div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-muted-foreground">Weather:</span>
-                    <span className="ml-1 font-medium text-foreground capitalize">
-                      {sequence.aggregatedAttributes.predominantWeather}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Created:</span>
-                    <span className="ml-1 font-medium text-foreground">
-                      {new Date(sequence.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2 space-x-2">
-                <Link 
-                  to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}
-                  className="flex-1"
-                >
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Video className="h-3 w-3 mr-1" />
-                    Play Video
-                  </Button>
-                </Link>
-                <Link 
-                  to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/frames`}
-                  className="flex-1"
-                >
-                  <Button size="sm" className="w-full bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-                    Check Frames
-                  </Button>
-                </Link>
+              
+              <div className="text-sm text-muted-foreground">
+                <span>Created: {new Date(sequence.created_at).toLocaleDateString()}</span>
               </div>
             </CardContent>
           </Card>
