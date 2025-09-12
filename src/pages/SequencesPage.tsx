@@ -2,8 +2,9 @@ import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CreateSequenceForm } from "@/components/forms/CreateSequenceForm";
 import { getProjectById, getPipelineById, getSequencesByPipelineId } from "@/data/mockData";
-import { PlayCircle, Image, Clock, Target, ArrowLeft, Play } from "lucide-react";
+import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route } from "lucide-react";
 
 const SequencesPage = () => {
   const { projectId, pipelineId } = useParams();
@@ -38,6 +39,15 @@ const SequencesPage = () => {
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'processed': return 'bg-green-500/10 text-green-600 border-green-500/20';
+      case 'processing': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+      case 'failed': return 'bg-red-500/10 text-red-600 border-red-500/20';
+      default: return 'bg-muted text-muted-foreground border-muted-foreground/20';
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -55,10 +65,7 @@ const SequencesPage = () => {
             Video sequences in <span className="font-medium text-foreground">{pipeline.name}</span>
           </p>
         </div>
-        <Button className="gradient-primary text-primary-foreground hover:shadow-glow transition-smooth">
-          <PlayCircle className="h-4 w-4 mr-2" />
-          New Sequence
-        </Button>
+        <CreateSequenceForm pipelineId={pipelineId || ''} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -75,6 +82,9 @@ const SequencesPage = () => {
                     <Badge variant="outline" className="text-muted-foreground">
                       {sequence.aggregatedAttributes.predominantRoadType}
                     </Badge>
+                    <Badge className={getStatusColor(sequence.status)} variant="outline">
+                      {sequence.status}
+                    </Badge>
                   </div>
                 </div>
                 <div className={`text-right ${getAccuracyColor(sequence.avgAccuracyScore)}`}>
@@ -87,7 +97,7 @@ const SequencesPage = () => {
             </CardHeader>
             
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Image className="h-4 w-4 mr-1" />
@@ -101,6 +111,46 @@ const SequencesPage = () => {
                     Duration
                   </div>
                   <div className="text-lg font-semibold text-foreground">{sequence.duration}s</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Camera className="h-4 w-4 mr-1" />
+                    FPS
+                  </div>
+                  <div className="text-lg font-semibold text-foreground">{sequence.fps}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Target className="h-4 w-4 mr-1" />
+                    Accuracy
+                  </div>
+                  <div className={`text-lg font-semibold ${getAccuracyColor(sequence.avgAccuracyScore)}`}>
+                    {(sequence.avgAccuracyScore * 100).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="space-y-1">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Car className="h-4 w-4 mr-1" />
+                    Vehicles
+                  </div>
+                  <div className="text-lg font-semibold text-foreground">{sequence.aggregatedAttributes.avgVehicleCount}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Users className="h-4 w-4 mr-1" />
+                    Pedestrians
+                  </div>
+                  <div className="text-lg font-semibold text-foreground">{sequence.aggregatedAttributes.avgPedestrianCount}</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Route className="h-4 w-4 mr-1" />
+                    Lanes
+                  </div>
+                  <div className="text-lg font-semibold text-foreground">{sequence.aggregatedAttributes.avgLaneCount}</div>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center text-sm text-muted-foreground">
@@ -132,10 +182,15 @@ const SequencesPage = () => {
               </div>
 
               <div className="flex items-center justify-between pt-2 space-x-2">
-                <Button variant="outline" size="sm" className="flex-1">
-                  <Play className="h-3 w-3 mr-1" />
-                  Play Video
-                </Button>
+                <Link 
+                  to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}
+                  className="flex-1"
+                >
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Video className="h-3 w-3 mr-1" />
+                    Play Video
+                  </Button>
+                </Link>
                 <Link 
                   to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/frames`}
                   className="flex-1"
@@ -155,9 +210,7 @@ const SequencesPage = () => {
           <PlayCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No sequences found</h3>
           <p className="text-muted-foreground mb-4">This pipeline doesn't have any sequences yet</p>
-          <Button className="gradient-primary text-primary-foreground">
-            Add Sequence
-          </Button>
+          <CreateSequenceForm pipelineId={pipelineId || ''} />
         </div>
       )}
     </div>

@@ -6,9 +6,13 @@ export interface Frame {
   sequence_id: string;
   attributes: {
     timeOfDay: 'day' | 'night' | 'dawn' | 'dusk';
-    roadType: 'highway' | 'city' | 'rural';
+    roadType: 'highway' | 'city' | 'rural' | 'suburban';
     trafficDensity: 'low' | 'medium' | 'high';
     weather: 'clear' | 'rain' | 'fog' | 'snow';
+    vehicleCount: number;
+    pedestrianCount: number;
+    trafficLightState: 'green' | 'red' | 'yellow' | 'none';
+    laneCount: number;
   };
   accuracyScore: number;
   timestamp: string;
@@ -20,11 +24,22 @@ export interface Sequence {
   pipeline_id: string;
   frameCount: number;
   duration: number; // in seconds
+  fps: number;
+  status: 'processing' | 'processed' | 'failed';
   aggregatedAttributes: {
     predominantTimeOfDay: string;
     predominantRoadType: string;
     avgTrafficDensity: string;
     predominantWeather: string;
+    avgVehicleCount: number;
+    avgPedestrianCount: number;
+    trafficLightDistribution: {
+      green: number;
+      red: number;
+      yellow: number;
+      none: number;
+    };
+    avgLaneCount: number;
   };
   avgAccuracyScore: number;
   createdAt: string;
@@ -134,11 +149,17 @@ export const mockSequences: Sequence[] = [
     pipeline_id: 'pipe-1',
     frameCount: 200,
     duration: 20,
+    fps: 10,
+    status: 'processed',
     aggregatedAttributes: {
       predominantTimeOfDay: 'night',
       predominantRoadType: 'highway',
       avgTrafficDensity: 'medium',
-      predominantWeather: 'clear'
+      predominantWeather: 'clear',
+      avgVehicleCount: 12,
+      avgPedestrianCount: 0,
+      trafficLightDistribution: { green: 45, red: 35, yellow: 10, none: 10 },
+      avgLaneCount: 3
     },
     avgAccuracyScore: 0.94,
     createdAt: '2024-01-20'
@@ -149,11 +170,17 @@ export const mockSequences: Sequence[] = [
     pipeline_id: 'pipe-1',
     frameCount: 150,
     duration: 15,
+    fps: 10,
+    status: 'processed',
     aggregatedAttributes: {
       predominantTimeOfDay: 'night',
       predominantRoadType: 'highway',
       avgTrafficDensity: 'low',
-      predominantWeather: 'clear'
+      predominantWeather: 'clear',
+      avgVehicleCount: 5,
+      avgPedestrianCount: 0,
+      trafficLightDistribution: { green: 0, red: 0, yellow: 0, none: 100 },
+      avgLaneCount: 2
     },
     avgAccuracyScore: 0.87,
     createdAt: '2024-01-22'
@@ -164,56 +191,150 @@ export const mockSequences: Sequence[] = [
     pipeline_id: 'pipe-2',
     frameCount: 180,
     duration: 18,
+    fps: 10,
+    status: 'processed',
     aggregatedAttributes: {
       predominantTimeOfDay: 'day',
       predominantRoadType: 'highway',
       avgTrafficDensity: 'high',
-      predominantWeather: 'clear'
+      predominantWeather: 'clear',
+      avgVehicleCount: 25,
+      avgPedestrianCount: 1,
+      trafficLightDistribution: { green: 40, red: 40, yellow: 15, none: 5 },
+      avgLaneCount: 4
     },
     avgAccuracyScore: 0.91,
     createdAt: '2024-02-05'
+  },
+  {
+    id: 'seq-4',
+    name: 'Urban Intersection - Morning',
+    pipeline_id: 'pipe-3',
+    frameCount: 240,
+    duration: 24,
+    fps: 10,
+    status: 'processed',
+    aggregatedAttributes: {
+      predominantTimeOfDay: 'day',
+      predominantRoadType: 'city',
+      avgTrafficDensity: 'high',
+      predominantWeather: 'clear',
+      avgVehicleCount: 18,
+      avgPedestrianCount: 8,
+      trafficLightDistribution: { green: 35, red: 35, yellow: 20, none: 10 },
+      avgLaneCount: 2
+    },
+    avgAccuracyScore: 0.89,
+    createdAt: '2024-02-18'
+  },
+  {
+    id: 'seq-5',
+    name: 'Suburban Residential',
+    pipeline_id: 'pipe-3',
+    frameCount: 120,
+    duration: 12,
+    fps: 10,
+    status: 'processing',
+    aggregatedAttributes: {
+      predominantTimeOfDay: 'day',
+      predominantRoadType: 'suburban',
+      avgTrafficDensity: 'low',
+      predominantWeather: 'clear',
+      avgVehicleCount: 3,
+      avgPedestrianCount: 2,
+      trafficLightDistribution: { green: 20, red: 15, yellow: 5, none: 60 },
+      avgLaneCount: 2
+    },
+    avgAccuracyScore: 0.92,
+    createdAt: '2024-03-01'
   }
 ];
 
 export const mockFrames: Frame[] = [
   {
     id: 'frame-1',
-    filePath: '/frames/highway-night-001.jpg',
+    filePath: '/src/assets/frame-highway-night.jpg',
     sequence_id: 'seq-1',
     attributes: {
       timeOfDay: 'night',
       roadType: 'highway',
       trafficDensity: 'medium',
-      weather: 'clear'
+      weather: 'clear',
+      vehicleCount: 12,
+      pedestrianCount: 0,
+      trafficLightState: 'green',
+      laneCount: 3
     },
     accuracyScore: 0.95,
     timestamp: '2024-01-20T22:15:30Z'
   },
   {
     id: 'frame-2',
-    filePath: '/frames/highway-night-002.jpg',
-    sequence_id: 'seq-1',
+    filePath: '/src/assets/frame-city-day.jpg',
+    sequence_id: 'seq-4',
     attributes: {
-      timeOfDay: 'night',
-      roadType: 'highway',
-      trafficDensity: 'medium',
-      weather: 'clear'
+      timeOfDay: 'day',
+      roadType: 'city',
+      trafficDensity: 'high',
+      weather: 'clear',
+      vehicleCount: 18,
+      pedestrianCount: 8,
+      trafficLightState: 'red',
+      laneCount: 2
     },
-    accuracyScore: 0.93,
-    timestamp: '2024-01-20T22:15:31Z'
+    accuracyScore: 0.89,
+    timestamp: '2024-02-18T08:30:15Z'
   },
   {
     id: 'frame-3',
-    filePath: '/frames/tunnel-001.jpg',
+    filePath: '/src/assets/frame-tunnel.jpg',
     sequence_id: 'seq-2',
     attributes: {
       timeOfDay: 'night',
       roadType: 'highway',
       trafficDensity: 'low',
-      weather: 'clear'
+      weather: 'clear',
+      vehicleCount: 5,
+      pedestrianCount: 0,
+      trafficLightState: 'none',
+      laneCount: 2
     },
     accuracyScore: 0.88,
     timestamp: '2024-01-22T23:45:12Z'
+  },
+  {
+    id: 'frame-4',
+    filePath: '/src/assets/frame-highway-night.jpg',
+    sequence_id: 'seq-3',
+    attributes: {
+      timeOfDay: 'day',
+      roadType: 'highway',
+      trafficDensity: 'high',
+      weather: 'clear',
+      vehicleCount: 25,
+      pedestrianCount: 1,
+      trafficLightState: 'yellow',
+      laneCount: 4
+    },
+    accuracyScore: 0.91,
+    timestamp: '2024-02-05T14:22:45Z'
+  },
+  {
+    id: 'frame-5',
+    filePath: '/src/assets/frame-city-day.jpg',
+    sequence_id: 'seq-5',
+    attributes: {
+      timeOfDay: 'day',
+      roadType: 'suburban',
+      trafficDensity: 'low',
+      weather: 'clear',
+      vehicleCount: 3,
+      pedestrianCount: 2,
+      trafficLightState: 'none',
+      laneCount: 2
+    },
+    accuracyScore: 0.92,
+    timestamp: '2024-03-01T11:15:20Z'
   }
 ];
 

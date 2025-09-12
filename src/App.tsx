@@ -8,6 +8,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import ProjectsPage from "./pages/ProjectsPage";
 import PipelinesPage from "./pages/PipelinesPage";
 import SequencesPage from "./pages/SequencesPage";
+import SequenceVideoPage from "./pages/SequenceVideoPage";
 import FramesPage from "./pages/FramesPage";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,7 @@ const App = () => (
                 <Route path="projects" element={<ProjectsPage />} />
                 <Route path="projects/:projectId/pipelines" element={<PipelinesPage />} />
                 <Route path="projects/:projectId/pipelines/:pipelineId/sequences" element={<SequencesPage />} />
+                <Route path="projects/:projectId/pipelines/:pipelineId/sequences/:sequenceId/video" element={<SequenceVideoPage />} />
                 <Route path="projects/:projectId/pipelines/:pipelineId/sequences/:sequenceId/frames" element={<FramesPage />} />
               </Route>
               <Route path="*" element={<NotFound />} />

@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CreatePipelineForm } from "@/components/forms/CreatePipelineForm";
 import { getProjectById, getPipelinesByProjectId } from "@/data/mockData";
 import { GitBranch, PlayCircle, Image, Calendar, Activity, ArrowLeft } from "lucide-react";
 
@@ -44,10 +45,7 @@ const PipelinesPage = () => {
             Data processing pipelines in <span className="font-medium text-foreground">{project.name}</span>
           </p>
         </div>
-        <Button className="gradient-primary text-primary-foreground hover:shadow-glow transition-smooth">
-          <GitBranch className="h-4 w-4 mr-2" />
-          New Pipeline
-        </Button>
+        <CreatePipelineForm projectId={projectId || ''} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -107,9 +105,7 @@ const PipelinesPage = () => {
           <GitBranch className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No pipelines found</h3>
           <p className="text-muted-foreground mb-4">Create your first pipeline to start processing data</p>
-          <Button className="gradient-primary text-primary-foreground">
-            Create Pipeline
-          </Button>
+          <CreatePipelineForm projectId={projectId || ''} />
         </div>
       )}
     </div>

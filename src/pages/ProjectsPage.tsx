@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CreateProjectForm } from "@/components/forms/CreateProjectForm";
 import { mockProjects } from "@/data/mockData";
 import { FolderOpen, GitBranch, PlayCircle, Image, Calendar, Activity } from "lucide-react";
 
@@ -24,10 +25,7 @@ const ProjectsPage = () => {
             Manage your data annotation projects and review QC results
           </p>
         </div>
-        <Button className="gradient-primary text-primary-foreground hover:shadow-glow transition-smooth">
-          <FolderOpen className="h-4 w-4 mr-2" />
-          New Project
-        </Button>
+        <CreateProjectForm />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -97,9 +95,7 @@ const ProjectsPage = () => {
           <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No projects found</h3>
           <p className="text-muted-foreground mb-4">Create your first project to get started</p>
-          <Button className="gradient-primary text-primary-foreground">
-            Create Project
-          </Button>
+          <CreateProjectForm />
         </div>
       )}
     </div>
