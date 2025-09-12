@@ -3,7 +3,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import ProjectsPage from "./pages/ProjectsPage";
+import PipelinesPage from "./pages/PipelinesPage";
+import SequencesPage from "./pages/SequencesPage";
+import FramesPage from "./pages/FramesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -14,11 +19,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <SidebarProvider>
+          <div className="min-h-screen w-full bg-background">
+            <Routes>
+              <Route path="/" element={<DashboardLayout />}>
+                <Route index element={<ProjectsPage />} />
+                <Route path="projects" element={<ProjectsPage />} />
+                <Route path="projects/:projectId/pipelines" element={<PipelinesPage />} />
+                <Route path="projects/:projectId/pipelines/:pipelineId/sequences" element={<SequencesPage />} />
+                <Route path="projects/:projectId/pipelines/:pipelineId/sequences/:sequenceId/frames" element={<FramesPage />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </div>
+        </SidebarProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
