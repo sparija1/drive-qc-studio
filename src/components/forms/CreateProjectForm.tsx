@@ -17,7 +17,7 @@ const formSchema = z.object({
 
 export const CreateProjectForm = () => {
   const [open, setOpen] = useState(false);
-  const createProject = useCreateProject();
+  const createProjectMutation = useCreateProject();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -29,7 +29,7 @@ export const CreateProjectForm = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await createProject.mutateAsync({
+      await createProjectMutation.mutateAsync({
         name: values.name,
         description: values.description || undefined,
       });
@@ -37,6 +37,7 @@ export const CreateProjectForm = () => {
       setOpen(false);
     } catch (error) {
       // Error handling is done in the hook
+      console.error('Error creating project:', error);
     }
   };
 
@@ -91,8 +92,8 @@ export const CreateProjectForm = () => {
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createProject.isPending}>
-                {createProject.isPending ? "Creating..." : "Create Project"}
+              <Button type="submit" disabled={createProjectMutation.isPending}>
+                {createProjectMutation.isPending ? "Creating..." : "Create Project"}
               </Button>
             </div>
           </form>
