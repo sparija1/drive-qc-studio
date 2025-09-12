@@ -3,13 +3,32 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreatePipelineForm } from "@/components/forms/CreatePipelineForm";
-import { getProjectById, getPipelinesByProjectId } from "@/data/mockData";
 import { GitBranch, PlayCircle, Image, Calendar, Activity, ArrowLeft } from "lucide-react";
+import { useProjectById } from "@/hooks/useProjects";
+import { usePipelinesByProjectId } from "@/hooks/usePipelines";
 
 const PipelinesPage = () => {
   const { projectId } = useParams();
-  const project = projectId ? getProjectById(projectId) : null;
-  const pipelines = projectId ? getPipelinesByProjectId(projectId) : [];
+  const { data: project, isLoading: projectLoading } = useProjectById(projectId || '');
+  const { data: pipelines = [], isLoading: pipelinesLoading } = usePipelinesByProjectId(projectId || '');
+
+  const isLoading = projectLoading || pipelinesLoading;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-2">
+          <Link to="/projects" className="text-muted-foreground hover:text-foreground transition-smooth">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+          <h1 className="text-3xl font-bold text-foreground">Pipelines</h1>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading pipelines...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
@@ -73,21 +92,21 @@ const PipelinesPage = () => {
                     <PlayCircle className="h-4 w-4 mr-1" />
                     Sequences
                   </div>
-                  <div className="text-lg font-semibold text-foreground">{pipeline.sequenceCount}</div>
+                  <div className="text-lg font-semibold text-foreground">0</div>
                 </div>
                 <div className="space-y-1">
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Image className="h-4 w-4 mr-1" />
                     Frames
                   </div>
-                  <div className="text-lg font-semibold text-foreground">{pipeline.totalFrames.toLocaleString()}</div>
+                  <div className="text-lg font-semibold text-foreground">0</div>
                 </div>
               </div>
 
               <div className="flex items-center justify-between pt-2 border-t border-border/50">
                 <div className="flex items-center text-xs text-muted-foreground">
                   <Calendar className="h-3 w-3 mr-1" />
-                  {new Date(pipeline.lastModified).toLocaleDateString()}
+                  {new Date(pipeline.created_at).toLocaleDateString()}
                 </div>
                 <Link to={`/projects/${projectId}/pipelines/${pipeline.id}/sequences`}>
                   <Button variant="outline" size="sm" className="text-xs">

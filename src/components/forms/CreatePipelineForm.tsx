@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useCreatePipeline } from "@/hooks/usePipelines";
 
 const formSchema = z.object({
   name: z.string().min(1, "Pipeline name is required"),
@@ -21,7 +21,7 @@ interface CreatePipelineFormProps {
 
 export const CreatePipelineForm = ({ projectId }: CreatePipelineFormProps) => {
   const [open, setOpen] = useState(false);
-  const { toast } = useToast();
+  const createPipeline = useCreatePipeline();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -31,15 +31,18 @@ export const CreatePipelineForm = ({ projectId }: CreatePipelineFormProps) => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Mock pipeline creation
-    console.log("Creating pipeline:", { ...values, projectId });
-    toast({
-      title: "Pipeline Created",
-      description: `Pipeline "${values.name}" has been created successfully.`,
-    });
-    setOpen(false);
-    form.reset();
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      await createPipeline.mutateAsync({
+        project_id: projectId,
+        name: values.name,
+        description: values.description || undefined,
+      });
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
   };
 
   return (
@@ -93,7 +96,9 @@ export const CreatePipelineForm = ({ projectId }: CreatePipelineFormProps) => {
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Create Pipeline</Button>
+              <Button type="submit" disabled={createPipeline.isPending}>
+                {createPipeline.isPending ? "Creating..." : "Create Pipeline"}
+              </Button>
             </div>
           </form>
         </Form>

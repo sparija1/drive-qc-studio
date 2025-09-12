@@ -14,7 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      frames: {
+        Row: {
+          accuracy: number | null
+          created_at: string
+          frame_number: number
+          id: string
+          image_url: string | null
+          lane_count: number | null
+          pedestrian_count: number | null
+          scene_type: string | null
+          sequence_id: string
+          timestamp_ms: number
+          traffic_density: string | null
+          traffic_light_status: string | null
+          updated_at: string
+          vehicle_count: number | null
+          weather_condition: string | null
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string
+          frame_number: number
+          id?: string
+          image_url?: string | null
+          lane_count?: number | null
+          pedestrian_count?: number | null
+          scene_type?: string | null
+          sequence_id: string
+          timestamp_ms: number
+          traffic_density?: string | null
+          traffic_light_status?: string | null
+          updated_at?: string
+          vehicle_count?: number | null
+          weather_condition?: string | null
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string
+          frame_number?: number
+          id?: string
+          image_url?: string | null
+          lane_count?: number | null
+          pedestrian_count?: number | null
+          scene_type?: string | null
+          sequence_id?: string
+          timestamp_ms?: number
+          traffic_density?: string | null
+          traffic_light_status?: string | null
+          updated_at?: string
+          vehicle_count?: number | null
+          weather_condition?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "frames_sequence_id_fkey"
+            columns: ["sequence_id"]
+            isOneToOne: false
+            referencedRelation: "sequences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pipelines: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          project_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          project_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipelines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sequences: {
+        Row: {
+          created_at: string
+          duration: number | null
+          fps: number | null
+          id: string
+          name: string
+          pipeline_id: string
+          scene_type: string | null
+          status: string
+          total_frames: number | null
+          traffic_density: string | null
+          updated_at: string
+          weather_condition: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration?: number | null
+          fps?: number | null
+          id?: string
+          name: string
+          pipeline_id: string
+          scene_type?: string | null
+          status?: string
+          total_frames?: number | null
+          traffic_density?: string | null
+          updated_at?: string
+          weather_condition?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration?: number | null
+          fps?: number | null
+          id?: string
+          name?: string
+          pipeline_id?: string
+          scene_type?: string | null
+          status?: string
+          total_frames?: number | null
+          traffic_density?: string | null
+          updated_at?: string
+          weather_condition?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sequences_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

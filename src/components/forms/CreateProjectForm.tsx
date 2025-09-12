@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useCreateProject } from "@/hooks/useProjects";
 
 const formSchema = z.object({
   name: z.string().min(1, "Project name is required"),
@@ -17,7 +17,7 @@ const formSchema = z.object({
 
 export const CreateProjectForm = () => {
   const [open, setOpen] = useState(false);
-  const { toast } = useToast();
+  const createProject = useCreateProject();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -27,15 +27,17 @@ export const CreateProjectForm = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Mock project creation
-    console.log("Creating project:", values);
-    toast({
-      title: "Project Created",
-      description: `Project "${values.name}" has been created successfully.`,
-    });
-    setOpen(false);
-    form.reset();
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      await createProject.mutateAsync({
+        name: values.name,
+        description: values.description || undefined,
+      });
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
   };
 
   return (
@@ -89,7 +91,9 @@ export const CreateProjectForm = () => {
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Create Project</Button>
+              <Button type="submit" disabled={createProject.isPending}>
+                {createProject.isPending ? "Creating..." : "Create Project"}
+              </Button>
             </div>
           </form>
         </Form>

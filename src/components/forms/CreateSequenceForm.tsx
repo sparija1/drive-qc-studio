@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Upload, Plus } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useCreateSequence } from "@/hooks/useSequences";
 
 const formSchema = z.object({
   name: z.string().min(1, "Sequence name is required"),
@@ -21,7 +21,7 @@ interface CreateSequenceFormProps {
 export const CreateSequenceForm = ({ pipelineId }: CreateSequenceFormProps) => {
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const { toast } = useToast();
+  const createSequence = useCreateSequence();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -34,26 +34,24 @@ export const CreateSequenceForm = ({ pipelineId }: CreateSequenceFormProps) => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setUploading(true);
     
-    // Mock sequence creation with image upload
-    const sequenceId = `seq-${Date.now()}`;
-    console.log("Creating sequence:", {
-      id: sequenceId,
-      name: values.name,
-      pipelineId,
-      imageCount: values.images?.length || 0,
-    });
-
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    toast({
-      title: "Sequence Created",
-      description: `Sequence "${values.name}" is being processed. You'll be notified when it's ready.`,
-    });
-    
-    setUploading(false);
-    setOpen(false);
-    form.reset();
+    try {
+      // Create the sequence first
+      await createSequence.mutateAsync({
+        pipeline_id: pipelineId,
+        name: values.name,
+      });
+      
+      // TODO: Implement image upload to storage
+      // For now we just simulate the upload
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      // Error handling is done in the hook
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
