@@ -97,7 +97,7 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
         const row = parsedData[index];
         
         try {
-          const frameId = frameMap.get(row.id);
+          const frameId = frameMap.get(row.frame_id);
           if (!frameId) {
             console.warn(`Frame ID ${row.frame_id} not found, skipping row ${index + 1}`);
             skippedRows++;
