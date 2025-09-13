@@ -73,61 +73,128 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
     setUploadProgress(0);
 
     try {
-      // Get sequence frames
+      // Get sequence frames with better error handling
       const { data: frames, error: framesError } = await supabase
         .from('frames')
         .select('id, frame_number')
         .eq('sequence_id', sequenceId)
         .order('frame_number');
 
-      if (framesError) throw framesError;
+      if (framesError) {
+        throw new Error(`Failed to fetch frames: ${framesError.message}`);
+      }
+
+      if (!frames || frames.length === 0) {
+        throw new Error('No frames found for this sequence. Please upload images first.');
+      }
 
       const frameMap = new Map(frames.map(frame => [frame.frame_number.toString(), frame.id]));
+      let successfulUpdates = 0;
+      let skippedRows = 0;
       
-      const updatePromises = parsedData.map(async (row, index) => {
-        const frameId = frameMap.get(row.frame_id);
-        if (!frameId) return;
-
-        // Map CSV columns to frame attributes
-        const updateData: any = {};
+      // Process rows sequentially to avoid overwhelming the database
+      for (let index = 0; index < parsedData.length; index++) {
+        const row = parsedData[index];
         
-        if (row.time_of_day) updateData.scene_type = row.time_of_day;
-        if (row.road_type) updateData.traffic_density = row.road_type;
-        if (row.weather) updateData.weather_condition = row.weather;
-        if (row.traffic_density) updateData.traffic_density = row.traffic_density;
-        if (row.accuracy) updateData.accuracy = parseFloat(row.accuracy);
-        if (row.confidence_score) updateData.confidence_score = parseFloat(row.confidence_score);
-        if (row.vehicle_count) updateData.vehicle_count = parseInt(row.vehicle_count);
-        if (row.pedestrian_count) updateData.pedestrian_count = parseInt(row.pedestrian_count);
-        if (row.lane_count) updateData.lane_count = parseInt(row.lane_count);
-        if (row.status) updateData.status = row.status;
-        if (row.notes) updateData.notes = row.notes;
+        try {
+          const frameId = frameMap.get(row.frame_id);
+          if (!frameId) {
+            console.warn(`Frame ID ${row.frame_id} not found, skipping row ${index + 1}`);
+            skippedRows++;
+            continue;
+          }
 
-        const { error } = await supabase
-          .from('frames')
-          .update(updateData)
-          .eq('id', frameId);
+          // Map CSV columns to frame attributes with validation
+          const updateData: any = {};
+          
+          if (row.time_of_day) updateData.scene_type = row.time_of_day;
+          if (row.road_type) updateData.traffic_density = row.road_type;
+          if (row.weather) updateData.weather_condition = row.weather;
+          if (row.traffic_density) updateData.traffic_density = row.traffic_density;
+          
+          // Validate numeric fields
+          if (row.accuracy) {
+            const accuracy = parseFloat(row.accuracy);
+            if (!isNaN(accuracy) && accuracy >= 0 && accuracy <= 1) {
+              updateData.accuracy = accuracy;
+            }
+          }
+          if (row.confidence_score) {
+            const confidence = parseFloat(row.confidence_score);
+            if (!isNaN(confidence) && confidence >= 0 && confidence <= 1) {
+              updateData.confidence_score = confidence;
+            }
+          }
+          if (row.vehicle_count) {
+            const vehicleCount = parseInt(row.vehicle_count);
+            if (!isNaN(vehicleCount) && vehicleCount >= 0) {
+              updateData.vehicle_count = vehicleCount;
+            }
+          }
+          if (row.pedestrian_count) {
+            const pedestrianCount = parseInt(row.pedestrian_count);
+            if (!isNaN(pedestrianCount) && pedestrianCount >= 0) {
+              updateData.pedestrian_count = pedestrianCount;
+            }
+          }
+          if (row.lane_count) {
+            const laneCount = parseInt(row.lane_count);
+            if (!isNaN(laneCount) && laneCount >= 0) {
+              updateData.lane_count = laneCount;
+            }
+          }
+          if (row.status) updateData.status = row.status;
+          if (row.notes) updateData.notes = row.notes;
 
-        if (error) throw error;
+          // Only update if we have data to update
+          if (Object.keys(updateData).length > 0) {
+            const { error } = await supabase
+              .from('frames')
+              .update(updateData)
+              .eq('id', frameId);
 
-        // Update progress
-        const progress = ((index + 1) / parsedData.length) * 100;
-        setUploadProgress(progress);
-      });
+            if (error) {
+              console.error(`Error updating frame ${row.frame_id}:`, error);
+              throw new Error(`Failed to update frame ${row.frame_id}: ${error.message}`);
+            }
+            
+            successfulUpdates++;
+          }
+          
+          // Update progress after each row
+          const progress = ((index + 1) / parsedData.length) * 100;
+          setUploadProgress(progress);
+          
+        } catch (rowError: any) {
+          console.error(`Error processing row ${index + 1}:`, rowError);
+          toast({
+            title: "Row processing error",
+            description: `Error in row ${index + 1}: ${rowError.message}`,
+            variant: "destructive"
+          });
+          // Continue with other rows instead of failing completely
+        }
+      }
 
-      await Promise.all(updatePromises);
+      if (successfulUpdates > 0) {
+        toast({
+          title: "Attributes uploaded!",
+          description: `Successfully updated ${successfulUpdates} frame attributes.${skippedRows > 0 ? ` ${skippedRows} rows were skipped.` : ''}`
+        });
 
-      toast({
-        title: "Attributes uploaded!",
-        description: `Successfully updated ${parsedData.length} frame attributes.`
-      });
-
-      // Reset form
-      setCsvFile(null);
-      setParsedData([]);
-      setPreviewColumns([]);
-      setUploadProgress(0);
-      onUploadComplete();
+        // Reset form
+        setCsvFile(null);
+        setParsedData([]);
+        setPreviewColumns([]);
+        setUploadProgress(0);
+        onUploadComplete();
+      } else {
+        toast({
+          title: "No updates made",
+          description: "No frame attributes were updated. Please check your CSV format.",
+          variant: "destructive"
+        });
+      }
 
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -136,6 +203,9 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
         description: error.message || "Failed to upload attributes.",
         variant: "destructive"
       });
+      
+      // Reset progress on failure
+      setUploadProgress(0);
     } finally {
       setUploading(false);
     }

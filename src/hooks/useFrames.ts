@@ -26,6 +26,7 @@ export interface CreateFrameData {
   frame_number: number;
   timestamp_ms: number;
   image_url?: string;
+  user_id?: string;
   vehicle_count?: number;
   pedestrian_count?: number;
   lane_count?: number;

@@ -60,64 +60,96 @@ export const CreateSequenceForm = ({ pipelineId }: CreateSequenceFormProps) => {
       // Upload images and create frames
       const files = values.images as FileList;
       const uploadedImages = new Set<string>(); // Track uploaded image names to prevent duplicates
+      let successfulUploads = 0;
       
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
         
-        // Check for duplicates by filename
-        if (uploadedImages.has(file.name)) {
+        try {
+          // Check for duplicates by filename
+          if (uploadedImages.has(file.name)) {
+            toast({
+              title: "Duplicate Image",
+              description: `Skipped duplicate image: ${file.name}`,
+              variant: "destructive",
+            });
+            continue;
+          }
+          
+          // Upload to Supabase Storage with better error handling
+          const fileName = `${user.id}/${sequence.id}/${i.toString().padStart(4, '0')}_${file.name}`;
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('sequence-images')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+            
+          if (uploadError) {
+            console.error(`Upload error for ${file.name}:`, uploadError);
+            if (uploadError.message?.includes('already exists')) {
+              // File already exists, continue with frame creation
+            } else {
+              throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
+            }
+          }
+          
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('sequence-images')
+            .getPublicUrl(fileName);
+          
+          // Create frame record with user_id
+          await createFrame.mutateAsync({
+            sequence_id: sequence.id,
+            frame_number: i + 1,
+            timestamp_ms: i * (1000 / 30), // Default 30 FPS
+            image_url: publicUrl,
+            user_id: user.id, // Ensure user_id is included
+          });
+          
+          uploadedImages.add(file.name);
+          successfulUploads++;
+          
+        } catch (fileError: any) {
+          console.error(`Error processing file ${file.name}:`, fileError);
           toast({
-            title: "Duplicate Image",
-            description: `Skipped duplicate image: ${file.name}`,
+            title: "File upload error",
+            description: `Failed to upload ${file.name}: ${fileError.message}`,
             variant: "destructive",
           });
-          continue;
+          // Continue with other files instead of failing completely
         }
-        
-        // Upload to Supabase Storage
-        const fileName = `${user.id}/${sequence.id}/${Date.now()}_${file.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('sequence-images')
-          .upload(fileName, file);
-          
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          continue;
-        }
-        
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('sequence-images')
-          .getPublicUrl(fileName);
-        
-        // Create frame record
-        await createFrame.mutateAsync({
-          sequence_id: sequence.id,
-          frame_number: i + 1,
-          timestamp_ms: i * (1000 / 30), // Default 30 FPS
-          image_url: publicUrl,
-        });
-        
-        uploadedImages.add(file.name);
       }
       
       // Update sequence with total frames
       await supabase
         .from('sequences')
-        .update({ total_frames: uploadedImages.size })
+        .update({ 
+          total_frames: successfulUploads,
+          status: successfulUploads > 0 ? 'processed' : 'failed'
+        })
         .eq('id', sequence.id);
       
-      form.reset();
-      setOpen(false);
-      toast({
-        title: "Success",
-        description: `Sequence created with ${uploadedImages.size} frames`,
-      });
-    } catch (error) {
+      if (successfulUploads > 0) {
+        form.reset();
+        setOpen(false);
+        toast({
+          title: "Success",
+          description: `Sequence created with ${successfulUploads} of ${files.length} frames`,
+        });
+      } else {
+        toast({
+          title: "Upload failed",
+          description: "No images were successfully uploaded.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
       console.error('Error creating sequence:', error);
       toast({
         title: "Error",
-        description: "Failed to create sequence. Please try again.",
+        description: error.message || "Failed to create sequence. Please try again.",
         variant: "destructive",
       });
     } finally {

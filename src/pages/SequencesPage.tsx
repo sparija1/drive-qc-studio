@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateSequenceForm } from "@/components/forms/CreateSequenceForm";
 import { BulkImageUpload } from "@/components/upload/BulkImageUpload";
 import { CSVAttributeUpload } from "@/components/upload/CSVAttributeUpload";
+import { FramePreviewGrid } from "@/components/sequences/FramePreviewGrid";
 import { useSequencesByPipelineId, useDeleteSequence } from "@/hooks/useSequences";
 import { usePipelineById } from "@/hooks/usePipelines";
 import { useProjectById } from "@/hooks/useProjects";
@@ -100,52 +101,52 @@ const SequencesPage = () => {
               {sequences.map((sequence) => (
                 <Card key={sequence.id} className="shadow-card hover:shadow-elevated transition-smooth gradient-surface border-border/50">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <Link 
-                        to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}
-                        className="text-lg font-semibold text-foreground hover:text-primary transition-smooth"
-                      >
-                        {sequence.name}
-                      </Link>
-                      <div className="flex items-center space-x-2">
-                        <Badge 
-                          variant={sequence.status === 'processed' ? 'default' : 'secondary'}
-                          className="capitalize"
+                      <div className="flex items-center justify-between">
+                        <Link 
+                          to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}
+                          className="text-lg font-semibold text-foreground hover:text-primary transition-smooth"
                         >
-                          {sequence.status}
-                        </Badge>
-                        <Link to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}>
-                          <Button variant="outline" size="sm">
-                            <Play className="h-4 w-4 mr-2" />
-                            Play
-                          </Button>
+                          {sequence.name}
                         </Link>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            variant={sequence.status === 'processed' ? 'default' : 'secondary'}
+                            className="capitalize"
+                          >
+                            {sequence.status}
+                          </Badge>
+                          <Link to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}>
                             <Button variant="outline" size="sm">
-                              <Trash2 className="h-4 w-4" />
+                              <Play className="h-4 w-4 mr-2" />
+                              Play
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Sequence</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{sequence.name}"? This will also delete all frames associated with this sequence. This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteSequence.mutate(sequence.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                          </Link>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Sequence</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{sequence.name}"? This will also delete all frames associated with this sequence. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteSequence.mutate(sequence.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
-                    </div>
                   </CardHeader>
                   
                   <CardContent className="space-y-4">
@@ -160,6 +161,13 @@ const SequencesPage = () => {
                     <div className="text-sm text-muted-foreground">
                       <span>Created: {new Date(sequence.created_at).toLocaleDateString()}</span>
                     </div>
+                    
+                    {/* Frame Preview for Sequences with Frames */}
+                    {sequence.total_frames > 0 && (
+                      <div className="mt-4 pt-4 border-t">
+                        <FramePreviewGrid sequenceId={sequence.id} />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
