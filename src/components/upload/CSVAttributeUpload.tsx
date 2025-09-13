@@ -89,9 +89,6 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
       }
 
       const frameMap = new Map(frames.map(frame => [frame.frame_number.toString(), frame.id]));
-      console.log('Available frames:', frames.map(f => ({ number: f.frame_number, id: f.id })));
-      console.log('CSV frame_id values:', parsedData.map(row => row.frame_id));
-      
       let successfulUpdates = 0;
       let skippedRows = 0;
       
@@ -100,10 +97,9 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
         const row = parsedData[index];
         
         try {
-          // Try to map frame_id (from CSV) to actual frame ID in database
-          const frameId = frameMap.get(row.frame_id);
+          const frameId = frameMap.get(row.id);
           if (!frameId) {
-            console.warn(`Frame number ${row.frame_id} not found in frames [${Array.from(frameMap.keys()).join(', ')}], skipping row ${index + 1}`);
+            console.warn(`Frame ID ${row.frame_id} not found, skipping row ${index + 1}`);
             skippedRows++;
             continue;
           }
@@ -111,8 +107,8 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
           // Map CSV columns to frame attributes with validation
           const updateData: any = {};
           
-          if (row.time_of_day) updateData.scene_type = row.time_of_day;
-          if (row.road_type) updateData.traffic_density = row.road_type;
+          if (row.time_of_day) updateData.time_of_day = row.time_of_day;
+          if (row.road_type) updateData.scene_type = row.road_type;
           if (row.weather) updateData.weather_condition = row.weather;
           if (row.traffic_density) updateData.traffic_density = row.traffic_density;
           
@@ -306,8 +302,7 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
 
       <div className="text-xs text-muted-foreground space-y-1 p-3 bg-muted/50 rounded">
         <p><strong>Supported columns:</strong></p>
-        <p><strong>frame_id</strong> - Frame number (1, 2, 3, etc.) matching the order of uploaded images</p>
-        <p>time_of_day, road_type, weather, traffic_density, accuracy, confidence_score, vehicle_count, pedestrian_count, lane_count, status, notes</p>
+        <p>frame_id (required), time_of_day, road_type, weather, traffic_density, accuracy, confidence_score, vehicle_count, pedestrian_count, lane_count, status, notes</p>
       </div>
     </div>
   );
