@@ -97,16 +97,9 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
         const row = parsedData[index];
         
         try {
-          const frameNumber = parseInt(row.frame_id);
-          if (isNaN(frameNumber)) {
-            console.warn(`Invalid frame_id ${row.frame_id} in row ${index + 1}, skipping`);
-            skippedRows++;
-            continue;
-          }
-
-          const frameId = frameMap.get(frameNumber.toString());
+          const frameId = frameMap.get(row.frame_id);
           if (!frameId) {
-            console.warn(`Frame number ${frameNumber} not found, skipping row ${index + 1}`);
+            console.warn(`Frame ID ${row.frame_id} not found, skipping row ${index + 1}`);
             skippedRows++;
             continue;
           }
@@ -115,8 +108,8 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
           const updateData: any = {};
           
           if (row.time_of_day) updateData.time_of_day = row.time_of_day;
-          if (row.scene_type) updateData.scene_type = row.scene_type;
-          if (row.weather_condition) updateData.weather_condition = row.weather_condition;
+          if (row.road_type) updateData.scene_type = row.road_type;
+          if (row.weather) updateData.weather_condition = row.weather_condition;
           if (row.traffic_density) updateData.traffic_density = row.traffic_density;
           
           // Validate numeric fields
