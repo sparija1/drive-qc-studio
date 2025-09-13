@@ -107,8 +107,8 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
           // Map CSV columns to frame attributes with validation
           const updateData: any = {};
           
-          if (row.time_of_day) updateData.time_of_day = row.time_of_day;
-          if (row.road_type) updateData.scene_type = row.road_type;
+          if (row.time_of_day) updateData.scene_type = row.time_of_day;
+          if (row.road_type) updateData.traffic_density = row.road_type;
           if (row.weather) updateData.weather_condition = row.weather;
           if (row.traffic_density) updateData.traffic_density = row.traffic_density;
           
@@ -151,7 +151,7 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
             const { error } = await supabase
               .from('frames')
               .update(updateData)
-              .eq('id', frameId);
+              .eq('frame_number', frameId);
 
             if (error) {
               console.error(`Error updating frame ${row.frame_id}:`, error);
