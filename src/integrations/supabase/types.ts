@@ -14,17 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string
+          table_name: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id: string
+          table_name: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string
+          table_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       frames: {
         Row: {
           accuracy: number | null
+          confidence_score: number | null
           created_at: string
           frame_number: number
           id: string
           image_url: string | null
           lane_count: number | null
+          notes: string | null
           pedestrian_count: number | null
           scene_type: string | null
           sequence_id: string
+          status: string | null
           timestamp_ms: number
           traffic_density: string | null
           traffic_light_status: string | null
@@ -35,14 +71,17 @@ export type Database = {
         }
         Insert: {
           accuracy?: number | null
+          confidence_score?: number | null
           created_at?: string
           frame_number: number
           id?: string
           image_url?: string | null
           lane_count?: number | null
+          notes?: string | null
           pedestrian_count?: number | null
           scene_type?: string | null
           sequence_id: string
+          status?: string | null
           timestamp_ms: number
           traffic_density?: string | null
           traffic_light_status?: string | null
@@ -53,14 +92,17 @@ export type Database = {
         }
         Update: {
           accuracy?: number | null
+          confidence_score?: number | null
           created_at?: string
           frame_number?: number
           id?: string
           image_url?: string | null
           lane_count?: number | null
+          notes?: string | null
           pedestrian_count?: number | null
           scene_type?: string | null
           sequence_id?: string
+          status?: string | null
           timestamp_ms?: number
           traffic_density?: string | null
           traffic_light_status?: string | null
@@ -184,6 +226,7 @@ export type Database = {
           fps: number | null
           id: string
           name: string
+          notes: string | null
           pipeline_id: string
           scene_type: string | null
           status: string
@@ -199,6 +242,7 @@ export type Database = {
           fps?: number | null
           id?: string
           name: string
+          notes?: string | null
           pipeline_id: string
           scene_type?: string | null
           status?: string
@@ -214,6 +258,7 @@ export type Database = {
           fps?: number | null
           id?: string
           name?: string
+          notes?: string | null
           pipeline_id?: string
           scene_type?: string | null
           status?: string

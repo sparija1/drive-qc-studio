@@ -8,21 +8,27 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 import { 
   FolderOpen, 
   GitBranch, 
   PlayCircle, 
   Image,
   Activity,
-  BarChart3
+  BarChart3,
+  LogOut,
+  User
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { getProjectById, getPipelineById, getSequenceById } from "@/data/mockData";
 
 export function AppSidebar() {
   const { state } = useSidebar();
+  const { user, profile, signOut } = useAuth();
   const location = useLocation();
   const params = useParams();
   const currentPath = location.pathname;
@@ -166,6 +172,30 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        {/* User Profile Footer */}
+        <SidebarFooter className="border-t border-sidebar-border p-4">
+          {profile && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 px-2 py-1">
+                <User className="h-4 w-4 text-muted-foreground" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{profile.full_name || profile.email}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{profile.role}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={signOut}
+                className="w-full justify-start text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                {!collapsed && "Sign Out"}
+              </Button>
+            </div>
+          )}
+        </SidebarFooter>
       </SidebarContent>
     </Sidebar>
   );
