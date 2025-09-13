@@ -46,9 +46,12 @@ export const useCreateSequence = () => {
 
   return useMutation({
     mutationFn: async (sequenceData: CreateSequenceData) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { data, error } = await supabase
         .from('sequences')
-        .insert([sequenceData])
+        .insert([{ ...sequenceData, user_id: user.id }])
         .select()
         .single();
       
