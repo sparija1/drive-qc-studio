@@ -141,116 +141,108 @@ export const BulkImageUpload = ({ pipelineId, onUploadComplete }: BulkImageUploa
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileImage className="h-5 w-5" />
-          Bulk Image Upload
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="sequence-name">Sequence Name</Label>
+        <Input
+          id="sequence-name"
+          placeholder="Enter sequence name"
+          value={sequenceName}
+          onChange={(e) => setSequenceName(e.target.value)}
+          disabled={uploading}
+        />
+      </div>
+
+      <div
+        {...getRootProps()}
+        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+          isDragActive
+            ? 'border-primary bg-primary/10'
+            : 'border-border hover:border-primary/50'
+        }`}
+      >
+        <input {...getInputProps()} />
+        <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+        {isDragActive ? (
+          <p className="text-lg font-medium">Drop the images here...</p>
+        ) : (
+          <div>
+            <p className="text-lg font-medium mb-2">
+              Drag & drop images here, or click to select
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Supports PNG, JPG, JPEG, WebP files
+            </p>
+          </div>
+        )}
+      </div>
+
+      {files.length > 0 && (
         <div className="space-y-2">
-          <Label htmlFor="sequence-name">Sequence Name</Label>
-          <Input
-            id="sequence-name"
-            placeholder="Enter sequence name"
-            value={sequenceName}
-            onChange={(e) => setSequenceName(e.target.value)}
-            disabled={uploading}
-          />
-        </div>
-
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragActive
-              ? 'border-primary bg-primary/10'
-              : 'border-border hover:border-primary/50'
-          }`}
-        >
-          <input {...getInputProps()} />
-          <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          {isDragActive ? (
-            <p className="text-lg font-medium">Drop the images here...</p>
-          ) : (
-            <div>
-              <p className="text-lg font-medium mb-2">
-                Drag & drop images here, or click to select
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Supports PNG, JPG, JPEG, WebP files
-              </p>
-            </div>
-          )}
-        </div>
-
-        {files.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Selected Images ({files.length})</Label>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFiles([])}
-                disabled={uploading}
-              >
-                Clear All
-              </Button>
-            </div>
-            <div className="max-h-40 overflow-y-auto space-y-1">
-              {files.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">{index + 1}</Badge>
-                    <span className="text-sm font-medium truncate">{file.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      ({(file.size / 1024 / 1024).toFixed(1)} MB)
-                    </span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeFile(index)}
-                    disabled={uploading}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+          <div className="flex items-center justify-between">
+            <Label>Selected Images ({files.length})</Label>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setFiles([])}
+              disabled={uploading}
+            >
+              Clear All
+            </Button>
+          </div>
+          <div className="max-h-40 overflow-y-auto space-y-1">
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{index + 1}</Badge>
+                  <span className="text-sm font-medium truncate">{file.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    ({(file.size / 1024 / 1024).toFixed(1)} MB)
+                  </span>
                 </div>
-              ))}
-            </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(index)}
+                  disabled={uploading}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
 
-        {uploading && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Upload Progress</Label>
-              <span className="text-sm text-muted-foreground">
-                {uploadProgress.toFixed(0)}%
-              </span>
-            </div>
-            <Progress value={uploadProgress} />
+      {uploading && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>Upload Progress</Label>
+            <span className="text-sm text-muted-foreground">
+              {uploadProgress.toFixed(0)}%
+            </span>
           </div>
-        )}
+          <Progress value={uploadProgress} />
+        </div>
+      )}
 
-        <Button
-          onClick={uploadImages}
-          disabled={uploading || !sequenceName || files.length === 0}
-          className="w-full"
-        >
-          {uploading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <Upload className="mr-2 h-4 w-4" />
-              Upload {files.length} Images
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+      <Button
+        onClick={uploadImages}
+        disabled={uploading || !sequenceName || files.length === 0}
+        className="w-full"
+      >
+        {uploading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Uploading...
+          </>
+        ) : (
+          <>
+            <Upload className="mr-2 h-4 w-4" />
+            Upload {files.length} Images
+          </>
+        )}
+      </Button>
+    </div>
   );
 };

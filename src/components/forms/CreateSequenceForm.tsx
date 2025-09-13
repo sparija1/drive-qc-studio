@@ -11,6 +11,7 @@ import { useCreateSequence } from "@/hooks/useSequences";
 import { useCreateFrame } from "@/hooks/useFrames";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formSchema = z.object({
   name: z.string().min(1, "Sequence name is required"),
@@ -27,6 +28,7 @@ export const CreateSequenceForm = ({ pipelineId }: CreateSequenceFormProps) => {
   const createSequence = useCreateSequence();
   const createFrame = useCreateFrame();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -37,6 +39,15 @@ export const CreateSequenceForm = ({ pipelineId }: CreateSequenceFormProps) => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to create a sequence.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploading(true);
     
     try {
@@ -64,7 +75,7 @@ export const CreateSequenceForm = ({ pipelineId }: CreateSequenceFormProps) => {
         }
         
         // Upload to Supabase Storage
-        const fileName = `${sequence.id}/${Date.now()}_${file.name}`;
+        const fileName = `${user.id}/${sequence.id}/${Date.now()}_${file.name}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('sequence-images')
           .upload(fileName, file);
@@ -104,6 +115,11 @@ export const CreateSequenceForm = ({ pipelineId }: CreateSequenceFormProps) => {
       });
     } catch (error) {
       console.error('Error creating sequence:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create sequence. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setUploading(false);
     }

@@ -142,105 +142,98 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5" />
-          CSV Attribute Upload
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragActive
-              ? 'border-primary bg-primary/10'
-              : 'border-border hover:border-primary/50'
-          }`}
-        >
-          <input {...getInputProps()} />
-          <FileSpreadsheet className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          {isDragActive ? (
-            <p className="text-lg font-medium">Drop the CSV file here...</p>
-          ) : (
-            <div>
-              <p className="text-lg font-medium mb-2">
-                Drag & drop CSV file here, or click to select
-              </p>
-              <p className="text-sm text-muted-foreground">
-                CSV should have frame_id column and attribute columns
-              </p>
+    <div className="space-y-4">
+      <div
+        {...getRootProps()}
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+          isDragActive
+            ? 'border-primary bg-primary/10'
+            : 'border-border hover:border-primary/50'
+        }`}
+      >
+        <input {...getInputProps()} />
+        <FileSpreadsheet className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+        {isDragActive ? (
+          <p className="text-md font-medium">Drop the CSV file here...</p>
+        ) : (
+          <div>
+            <p className="text-md font-medium mb-1">
+              Drag & drop CSV file here, or click to select
+            </p>
+            <p className="text-xs text-muted-foreground">
+              CSV should have frame_id column and attribute columns
+            </p>
+          </div>
+        )}
+      </div>
+
+      {csvFile && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <span className="text-sm font-medium">{csvFile.name}</span>
+            <Badge variant="outline" className="text-xs">{parsedData.length} rows</Badge>
+          </div>
+
+          {previewColumns.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium">Detected Columns:</p>
+              <div className="flex flex-wrap gap-1">
+                {previewColumns.map(column => (
+                  <Badge key={column} variant="secondary" className="text-xs">
+                    {column}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {parsedData.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium">Sample Data (First 2 rows):</p>
+              <div className="bg-muted p-2 rounded text-xs max-h-32 overflow-y-auto">
+                <pre className="text-xs">{JSON.stringify(parsedData.slice(0, 2), null, 2)}</pre>
+              </div>
             </div>
           )}
         </div>
+      )}
 
-        {csvFile && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="font-medium">{csvFile.name}</span>
-              <Badge variant="outline">{parsedData.length} rows</Badge>
-            </div>
-
-            {previewColumns.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Detected Columns:</p>
-                <div className="flex flex-wrap gap-1">
-                  {previewColumns.map(column => (
-                    <Badge key={column} variant="secondary">
-                      {column}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {parsedData.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Sample Data:</p>
-                <div className="bg-muted p-3 rounded text-xs">
-                  <pre>{JSON.stringify(parsedData.slice(0, 2), null, 2)}</pre>
-                </div>
-              </div>
-            )}
+      {uploading && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium">Upload Progress</span>
+            <span className="text-xs text-muted-foreground">
+              {uploadProgress.toFixed(0)}%
+            </span>
           </div>
-        )}
-
-        {uploading && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Upload Progress</span>
-              <span className="text-sm text-muted-foreground">
-                {uploadProgress.toFixed(0)}%
-              </span>
-            </div>
-            <Progress value={uploadProgress} />
-          </div>
-        )}
-
-        <Button
-          onClick={uploadAttributes}
-          disabled={uploading || !csvFile || parsedData.length === 0}
-          className="w-full"
-        >
-          {uploading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <Upload className="mr-2 h-4 w-4" />
-              Upload Attributes
-            </>
-          )}
-        </Button>
-
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p><strong>Supported columns:</strong></p>
-          <p>frame_id (required), time_of_day, road_type, weather, traffic_density, accuracy, confidence_score, vehicle_count, pedestrian_count, lane_count, status, notes</p>
+          <Progress value={uploadProgress} />
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      <Button
+        onClick={uploadAttributes}
+        disabled={uploading || !csvFile || parsedData.length === 0}
+        className="w-full"
+        size="sm"
+      >
+        {uploading ? (
+          <>
+            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          <>
+            <Upload className="mr-2 h-3 w-3" />
+            Upload Attributes
+          </>
+        )}
+      </Button>
+
+      <div className="text-xs text-muted-foreground space-y-1 p-3 bg-muted/50 rounded">
+        <p><strong>Supported columns:</strong></p>
+        <p>frame_id (required), time_of_day, road_type, weather, traffic_density, accuracy, confidence_score, vehicle_count, pedestrian_count, lane_count, status, notes</p>
+      </div>
+    </div>
   );
 };

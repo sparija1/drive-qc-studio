@@ -9,7 +9,7 @@ import { CSVAttributeUpload } from "@/components/upload/CSVAttributeUpload";
 import { useSequencesByPipelineId, useDeleteSequence } from "@/hooks/useSequences";
 import { usePipelineById } from "@/hooks/usePipelines";
 import { useProjectById } from "@/hooks/useProjects";
-import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route, Trash2, Loader2 } from "lucide-react";
+import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route, Trash2, Loader2, FileSpreadsheet } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const SequencesPage = () => {
@@ -178,25 +178,43 @@ const SequencesPage = () => {
         
         <TabsContent value="upload">
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <BulkImageUpload 
-                pipelineId={pipelineId || ''} 
-                onUploadComplete={() => refetch()} 
-              />
-              
-              {sequences.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Upload Attributes</CardTitle>
-                    <CardDescription>
-                      Select a sequence to upload CSV attributes for
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* Sequential Images Upload */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Camera className="h-5 w-5" />
+                    Sequential Images Upload
+                  </CardTitle>
+                  <CardDescription>
+                    Upload frames as sequential images to create a new sequence
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <BulkImageUpload 
+                    pipelineId={pipelineId || ''} 
+                    onUploadComplete={() => refetch()} 
+                  />
+                </CardContent>
+              </Card>
+
+              {/* CSV Attributes Upload */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileSpreadsheet className="h-5 w-5" />
+                    CSV Attributes Upload
+                  </CardTitle>
+                  <CardDescription>
+                    Upload CSV files to add attributes to existing sequence frames
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {sequences.length > 0 ? (
                     <div className="space-y-4">
                       {sequences.map(sequence => (
-                        <div key={sequence.id} className="border rounded p-4">
-                          <div className="flex items-center justify-between mb-2">
+                        <div key={sequence.id} className="border rounded-lg p-4 space-y-3">
+                          <div className="flex items-center justify-between">
                             <h4 className="font-medium">{sequence.name}</h4>
                             <Badge variant="outline">{sequence.total_frames} frames</Badge>
                           </div>
@@ -207,9 +225,15 @@ const SequencesPage = () => {
                         </div>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <FileSpreadsheet className="h-12 w-12 mx-auto mb-4" />
+                      <p>No sequences available for attribute upload</p>
+                      <p className="text-sm">Create a sequence first using the Sequential Images Upload</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </TabsContent>
