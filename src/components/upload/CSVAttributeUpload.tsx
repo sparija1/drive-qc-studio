@@ -108,7 +108,7 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
           const updateData: any = {};
           
           if (row.time_of_day) updateData.time_of_day = row.time_of_day;
-          if (row.road_type) updateData.scene_type = row.road_type;
+          if (row.scene_type) updateData.scene_type = row.scene_type;
           if (row.weather) updateData.weather_condition = row.weather_condition;
           if (row.traffic_density) updateData.traffic_density = row.traffic_density;
           
@@ -302,7 +302,7 @@ export const CSVAttributeUpload = ({ sequenceId, onUploadComplete }: CSVAttribut
 
       <div className="text-xs text-muted-foreground space-y-1 p-3 bg-muted/50 rounded">
         <p><strong>Supported columns:</strong></p>
-        <p>frame_id (required), time_of_day, road_type, weather, traffic_density, accuracy, confidence_score, vehicle_count, pedestrian_count, lane_count, status, notes</p>
+        <p>frame_id (required), time_of_day, scene_type, weather, traffic_density, accuracy, confidence_score, vehicle_count, pedestrian_count, lane_count, status, notes</p>
       </div>
     </div>
   );
