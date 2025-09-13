@@ -29,6 +29,7 @@ export type Database = {
           traffic_density: string | null
           traffic_light_status: string | null
           updated_at: string
+          user_id: string | null
           vehicle_count: number | null
           weather_condition: string | null
         }
@@ -46,6 +47,7 @@ export type Database = {
           traffic_density?: string | null
           traffic_light_status?: string | null
           updated_at?: string
+          user_id?: string | null
           vehicle_count?: number | null
           weather_condition?: string | null
         }
@@ -63,6 +65,7 @@ export type Database = {
           traffic_density?: string | null
           traffic_light_status?: string | null
           updated_at?: string
+          user_id?: string | null
           vehicle_count?: number | null
           weather_condition?: string | null
         }
@@ -85,6 +88,7 @@ export type Database = {
           project_id: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -94,6 +98,7 @@ export type Database = {
           project_id: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -103,6 +108,7 @@ export type Database = {
           project_id?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -114,6 +120,33 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           created_at: string
@@ -122,6 +155,7 @@ export type Database = {
           name: string
           status: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -130,6 +164,7 @@ export type Database = {
           name: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -138,6 +173,7 @@ export type Database = {
           name?: string
           status?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -154,6 +190,7 @@ export type Database = {
           total_frames: number | null
           traffic_density: string | null
           updated_at: string
+          user_id: string | null
           weather_condition: string | null
         }
         Insert: {
@@ -168,6 +205,7 @@ export type Database = {
           total_frames?: number | null
           traffic_density?: string | null
           updated_at?: string
+          user_id?: string | null
           weather_condition?: string | null
         }
         Update: {
@@ -182,6 +220,7 @@ export type Database = {
           total_frames?: number | null
           traffic_density?: string | null
           updated_at?: string
+          user_id?: string | null
           weather_condition?: string | null
         }
         Relationships: [

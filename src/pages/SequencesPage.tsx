@@ -2,7 +2,10 @@ import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateSequenceForm } from "@/components/forms/CreateSequenceForm";
+import { BulkImageUpload } from "@/components/upload/BulkImageUpload";
+import { CSVAttributeUpload } from "@/components/upload/CSVAttributeUpload";
 import { useSequencesByPipelineId, useDeleteSequence } from "@/hooks/useSequences";
 import { usePipelineById } from "@/hooks/usePipelines";
 import { useProjectById } from "@/hooks/useProjects";
@@ -13,7 +16,7 @@ const SequencesPage = () => {
   const { projectId, pipelineId } = useParams();
   const { data: project } = useProjectById(projectId!);
   const { data: pipeline } = usePipelineById(pipelineId!);
-  const { data: sequences = [], isLoading, error } = useSequencesByPipelineId(pipelineId!);
+  const { data: sequences = [], isLoading, error, refetch } = useSequencesByPipelineId(pipelineId!);
   const deleteSequence = useDeleteSequence();
 
   if (isLoading) {
@@ -77,86 +80,140 @@ const SequencesPage = () => {
             Video sequences in <span className="font-medium text-foreground">{pipeline.name}</span>
           </p>
         </div>
-        <CreateSequenceForm pipelineId={pipelineId || ''} />
+        <Tabs defaultValue="sequences" className="w-auto">
+          <TabsList>
+            <TabsTrigger value="sequences">Sequences</TabsTrigger>
+            <TabsTrigger value="upload">Upload</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {sequences.map((sequence) => (
-          <Card key={sequence.id} className="shadow-card hover:shadow-elevated transition-smooth gradient-surface border-border/50">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <Link 
-                  to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}
-                  className="text-lg font-semibold text-foreground hover:text-primary transition-smooth"
-                >
-                  {sequence.name}
-                </Link>
-                <div className="flex items-center space-x-2">
-                  <Badge 
-                    variant={sequence.status === 'processed' ? 'default' : 'secondary'}
-                    className="capitalize"
-                  >
-                    {sequence.status}
-                  </Badge>
-                  <Link to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}>
-                    <Button variant="outline" size="sm">
-                      <Play className="h-4 w-4 mr-2" />
-                      Play
-                    </Button>
-                  </Link>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Sequence</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{sequence.name}"? This will also delete all frames associated with this sequence. This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => deleteSequence.mutate(sequence.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </div>
-            </CardHeader>
+      <Tabs defaultValue="sequences" className="w-full">
+        <TabsContent value="sequences">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Your Sequences</h2>
+              <CreateSequenceForm pipelineId={pipelineId || ''} />
+            </div>
             
-            <CardContent className="space-y-4">
-              <div className="text-sm text-muted-foreground">
-                <span>FPS: {sequence.fps || 'N/A'}</span>
-                <span className="mx-2">•</span>
-                <span>Frames: {sequence.total_frames || 0}</span>
-                <span className="mx-2">•</span>
-                <span>Duration: {sequence.duration ? `${sequence.duration}s` : 'N/A'}</span>
-              </div>
-              
-              <div className="text-sm text-muted-foreground">
-                <span>Created: {new Date(sequence.created_at).toLocaleDateString()}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {sequences.map((sequence) => (
+                <Card key={sequence.id} className="shadow-card hover:shadow-elevated transition-smooth gradient-surface border-border/50">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <Link 
+                        to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}
+                        className="text-lg font-semibold text-foreground hover:text-primary transition-smooth"
+                      >
+                        {sequence.name}
+                      </Link>
+                      <div className="flex items-center space-x-2">
+                        <Badge 
+                          variant={sequence.status === 'processed' ? 'default' : 'secondary'}
+                          className="capitalize"
+                        >
+                          {sequence.status}
+                        </Badge>
+                        <Link to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}>
+                          <Button variant="outline" size="sm">
+                            <Play className="h-4 w-4 mr-2" />
+                            Play
+                          </Button>
+                        </Link>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Sequence</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{sequence.name}"? This will also delete all frames associated with this sequence. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteSequence.mutate(sequence.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      <span>FPS: {sequence.fps || 'N/A'}</span>
+                      <span className="mx-2">•</span>
+                      <span>Frames: {sequence.total_frames || 0}</span>
+                      <span className="mx-2">•</span>
+                      <span>Duration: {sequence.duration ? `${sequence.duration}s` : 'N/A'}</span>
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      <span>Created: {new Date(sequence.created_at).toLocaleDateString()}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
 
-      {sequences.length === 0 && (
-        <div className="text-center py-12">
-          <PlayCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">No sequences found</h3>
-          <p className="text-muted-foreground mb-4">This pipeline doesn't have any sequences yet</p>
-          <CreateSequenceForm pipelineId={pipelineId || ''} />
-        </div>
-      )}
+            {sequences.length === 0 && (
+              <div className="text-center py-12">
+                <PlayCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">No sequences found</h3>
+                <p className="text-muted-foreground mb-4">This pipeline doesn't have any sequences yet</p>
+                <CreateSequenceForm pipelineId={pipelineId || ''} />
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="upload">
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <BulkImageUpload 
+                pipelineId={pipelineId || ''} 
+                onUploadComplete={() => refetch()} 
+              />
+              
+              {sequences.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Upload Attributes</CardTitle>
+                    <CardDescription>
+                      Select a sequence to upload CSV attributes for
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {sequences.map(sequence => (
+                        <div key={sequence.id} className="border rounded p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">{sequence.name}</h4>
+                            <Badge variant="outline">{sequence.total_frames} frames</Badge>
+                          </div>
+                          <CSVAttributeUpload 
+                            sequenceId={sequence.id} 
+                            onUploadComplete={() => refetch()}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
