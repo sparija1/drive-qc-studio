@@ -81,15 +81,13 @@ const SequencesPage = () => {
             Video sequences in <span className="font-medium text-foreground">{pipeline.name}</span>
           </p>
         </div>
-        <Tabs defaultValue="sequences" className="w-auto">
-          <TabsList>
-            <TabsTrigger value="sequences">Sequences</TabsTrigger>
-            <TabsTrigger value="upload">Upload</TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
       <Tabs defaultValue="sequences" className="w-full">
+        <TabsList>
+          <TabsTrigger value="sequences">Sequences</TabsTrigger>
+          <TabsTrigger value="upload">Upload</TabsTrigger>
+        </TabsList>
         <TabsContent value="sequences">
           <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -201,7 +199,10 @@ const SequencesPage = () => {
                 <CardContent>
                   <BulkImageUpload 
                     pipelineId={pipelineId || ''} 
-                    onUploadComplete={() => refetch()} 
+                    onUploadComplete={(sequenceId) => {
+                      console.log('Upload completed for sequence:', sequenceId);
+                      refetch();
+                    }} 
                   />
                 </CardContent>
               </Card>
@@ -228,7 +229,10 @@ const SequencesPage = () => {
                           </div>
                           <CSVAttributeUpload 
                             sequenceId={sequence.id} 
-                            onUploadComplete={() => refetch()}
+                            onUploadComplete={() => {
+                              console.log('CSV upload completed for sequence:', sequence.id);
+                              refetch();
+                            }}
                           />
                         </div>
                       ))}
