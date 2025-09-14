@@ -135,7 +135,7 @@ const SequencesPage = () => {
               <CreateSequenceForm pipelineId={pipelineId || ''} />
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">{/* Changed from grid to vertical spacing */}
               {sequences.map((sequence) => (
                 <Card key={sequence.id} className="shadow-card hover:shadow-elevated transition-smooth gradient-surface border-border/50">
                   <CardHeader>
