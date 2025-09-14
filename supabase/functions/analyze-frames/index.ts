@@ -7,6 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Python service URL - replace with your deployed service URL
+const PYTHON_SERVICE_URL = Deno.env.get('PYTHON_SERVICE_URL') || 'http://localhost:8000';
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -53,44 +56,40 @@ serve(async (req) => {
 
     console.log(`Found ${frames.length} frames to analyze`);
 
-    // Classification labels as per your Python script
-    const weatherLabels = ["Sunny", "Cloudy", "Rainfall", "Snowfall"];
-    const timeLabels = ["Day", "Night"];
-    const roadLabels = ["Highway", "City", "Suburb", "Rural"];
-    const laneLabels = ["more than two lanes", "two way traffic", "one lane"];
-
     const analysisResults = [];
     
-    // Helper function to classify image using your model logic
-    async function classifyImage(imageUrl: string) {
+    // Helper function to call Python service for image analysis
+    async function analyzeImageWithPython(imageUrl: string) {
       try {
-        // TODO: Replace this with actual model inference
-        // For now, using image analysis based on URL patterns and mock classification
-        
-        // Download and analyze image (mock implementation)
-        const response = await fetch(imageUrl);
+        const response = await fetch(`${PYTHON_SERVICE_URL}/analyze`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ image_url: imageUrl }),
+        });
+
         if (!response.ok) {
-          throw new Error(`Failed to fetch image: ${response.statusText}`);
+          throw new Error(`Python service error: ${response.statusText}`);
         }
-        
-        // Mock classification based on your Python script structure
-        // In production, you would load your fine-tuned CLIP model here
-        const mockAnalysis = {
-          weather: weatherLabels[Math.floor(Math.random() * weatherLabels.length)],
-          dayNight: timeLabels[Math.floor(Math.random() * timeLabels.length)],
-          roadType: roadLabels[Math.floor(Math.random() * roadLabels.length)],
-          lanes: laneLabels[Math.floor(Math.random() * laneLabels.length)]
+
+        const result = await response.json();
+        return {
+          weather: result.weather,
+          dayNight: result.day_night,
+          roadType: result.road_type,
+          lanes: result.lanes,
+          confidence: result.confidence_scores
         };
-        
-        return mockAnalysis;
       } catch (error) {
-        console.error('Error classifying image:', error);
-        // Return default values on error
+        console.error('Error calling Python service:', error);
+        // Fallback to mock data if Python service is unavailable
         return {
           weather: "Sunny",
           dayNight: "Day", 
           roadType: "City",
-          lanes: "two way traffic"
+          lanes: "two way traffic",
+          confidence: { overall: 0.5 }
         };
       }
     }
@@ -104,8 +103,8 @@ serve(async (req) => {
           continue;
         }
 
-        // Classify image using your model
-        const classification = await classifyImage(frame.image_url);
+        // Call Python service for analysis
+        const classification = await analyzeImageWithPython(frame.image_url);
 
         const analysisResult = {
           weather: classification.weather,
