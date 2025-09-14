@@ -87,15 +87,12 @@ serve(async (req) => {
         const analysisResult = await analyzeFrameWithHF(hf, frame.image_url);
         console.log(`Analysis completed for frame ${frame.frame_number}:`, analysisResult);
         
-        // Update frame with analysis results
+        // Update frame with analysis results (only the 4 required attributes)
         const updateData = {
-          weather_condition: analysisResult.weather,
-          time_of_day: analysisResult.timeOfDay,
-          scene_type: analysisResult.roadType,
-          lane_count: analysisResult.lanes,
-          vehicle_count: analysisResult.vehicleCount,
-          pedestrian_count: analysisResult.pedestrianCount,
-          accuracy: analysisResult.confidence,
+          weather: analysisResult.weather,
+          "day-night": analysisResult.timeOfDay,
+          "road-type": analysisResult.roadType,
+          lanes: analysisResult.lanes.toString(),
           status: 'analyzed',
           updated_at: new Date().toISOString()
         };
