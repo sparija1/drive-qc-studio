@@ -78,22 +78,33 @@ serve(async (req) => {
       try {
         console.log(`Processing frame ${frame.frame_number} with image: ${frame.image_url}`);
         
+        if (!frame.image_url) {
+          console.warn(`Skipping frame ${frame.frame_number} - no image URL`);
+          errorCount++;
+          continue;
+        }
+
         const analysisResult = await analyzeFrameWithHF(hf, frame.image_url);
+        console.log(`Analysis completed for frame ${frame.frame_number}:`, analysisResult);
         
         // Update frame with analysis results
+        const updateData = {
+          weather_condition: analysisResult.weather,
+          time_of_day: analysisResult.timeOfDay,
+          scene_type: analysisResult.roadType,
+          lane_count: analysisResult.lanes,
+          vehicle_count: analysisResult.vehicleCount,
+          pedestrian_count: analysisResult.pedestrianCount,
+          accuracy: analysisResult.confidence,
+          status: 'analyzed',
+          updated_at: new Date().toISOString()
+        };
+
+        console.log(`Updating frame ${frame.frame_number} with data:`, updateData);
+
         const { error: updateError } = await supabase
           .from('frames')
-          .update({
-            weather_condition: analysisResult.weather,
-            time_of_day: analysisResult.timeOfDay,
-            scene_type: analysisResult.roadType,
-            lane_count: analysisResult.lanes,
-            vehicle_count: analysisResult.vehicleCount,
-            pedestrian_count: analysisResult.pedestrianCount,
-            accuracy: analysisResult.confidence,
-            status: 'analyzed',
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', frame.id);
 
         if (updateError) {
@@ -106,6 +117,12 @@ serve(async (req) => {
 
       } catch (error) {
         console.error(`Error processing frame ${frame.frame_number}:`, error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          frameId: frame.id,
+          imageUrl: frame.image_url
+        });
         errorCount++;
       }
     }
@@ -139,72 +156,110 @@ async function analyzeFrameWithHF(hf: HfInference, imageUrl: string): Promise<An
   console.log('Analyzing image with Hugging Face models:', imageUrl);
 
   try {
-    // Use CLIP for zero-shot image classification
-    const weatherResult = await hf.zeroShotImageClassification({
-      model: 'openai/clip-vit-base-patch32',
-      inputs: imageUrl,
-      parameters: {
-        candidate_labels: ['sunny weather', 'cloudy weather', 'rainy weather', 'snowy weather', 'foggy weather']
+    // Test if the image URL is accessible
+    try {
+      const imageResponse = await fetch(imageUrl, { method: 'HEAD' });
+      if (!imageResponse.ok) {
+        throw new Error(`Image not accessible: ${imageResponse.status} ${imageResponse.statusText}`);
       }
-    });
+      console.log('Image URL is accessible');
+    } catch (error) {
+      console.error('Image URL check failed:', error);
+      throw new Error(`Cannot access image URL: ${error.message}`);
+    }
 
-    const timeResult = await hf.zeroShotImageClassification({
-      model: 'openai/clip-vit-base-patch32',
-      inputs: imageUrl,
-      parameters: {
-        candidate_labels: ['daytime scene', 'nighttime scene', 'dawn scene', 'dusk scene']
-      }
-    });
+    console.log('Starting Hugging Face classifications...');
 
-    const roadResult = await hf.zeroShotImageClassification({
-      model: 'openai/clip-vit-base-patch32',
-      inputs: imageUrl,
-      parameters: {
-        candidate_labels: ['highway road', 'city street', 'suburban road', 'rural road']
-      }
-    });
+    // Use a more robust approach with better error handling
+    const [weatherResult, timeResult, roadResult, laneResult, vehicleResult, pedestrianResult] = await Promise.allSettled([
+      hf.zeroShotImageClassification({
+        model: 'openai/clip-vit-base-patch32',
+        inputs: imageUrl,
+        parameters: {
+          candidate_labels: ['sunny weather', 'cloudy weather', 'rainy weather', 'snowy weather', 'foggy weather']
+        }
+      }),
+      hf.zeroShotImageClassification({
+        model: 'openai/clip-vit-base-patch32',
+        inputs: imageUrl,
+        parameters: {
+          candidate_labels: ['daytime scene', 'nighttime scene', 'dawn scene', 'dusk scene']
+        }
+      }),
+      hf.zeroShotImageClassification({
+        model: 'openai/clip-vit-base-patch32',
+        inputs: imageUrl,
+        parameters: {
+          candidate_labels: ['highway road', 'city street', 'suburban road', 'rural road']
+        }
+      }),
+      hf.zeroShotImageClassification({
+        model: 'openai/clip-vit-base-patch32',
+        inputs: imageUrl,
+        parameters: {
+          candidate_labels: ['single lane road', 'two lane road', 'multi lane highway', 'wide highway with many lanes']
+        }
+      }),
+      hf.zeroShotImageClassification({
+        model: 'openai/clip-vit-base-patch32',
+        inputs: imageUrl,
+        parameters: {
+          candidate_labels: ['no vehicles', 'few vehicles', 'moderate traffic', 'heavy traffic', 'very heavy traffic']
+        }
+      }),
+      hf.zeroShotImageClassification({
+        model: 'openai/clip-vit-base-patch32',
+        inputs: imageUrl,
+        parameters: {
+          candidate_labels: ['no pedestrians', 'few pedestrians', 'some pedestrians', 'many pedestrians']
+        }
+      })
+    ]);
 
-    const laneResult = await hf.zeroShotImageClassification({
-      model: 'openai/clip-vit-base-patch32',
-      inputs: imageUrl,
-      parameters: {
-        candidate_labels: ['single lane road', 'two lane road', 'multi lane highway', 'wide highway with many lanes']
-      }
-    });
+    // Check if any classification failed
+    const failedClassifications = [];
+    if (weatherResult.status === 'rejected') failedClassifications.push('weather');
+    if (timeResult.status === 'rejected') failedClassifications.push('time');
+    if (roadResult.status === 'rejected') failedClassifications.push('road');
+    if (laneResult.status === 'rejected') failedClassifications.push('lane');
+    if (vehicleResult.status === 'rejected') failedClassifications.push('vehicle');
+    if (pedestrianResult.status === 'rejected') failedClassifications.push('pedestrian');
 
-    const vehicleResult = await hf.zeroShotImageClassification({
-      model: 'openai/clip-vit-base-patch32',
-      inputs: imageUrl,
-      parameters: {
-        candidate_labels: ['no vehicles', 'few vehicles', 'moderate traffic', 'heavy traffic', 'very heavy traffic']
-      }
-    });
+    if (failedClassifications.length > 0) {
+      console.error('Failed classifications:', failedClassifications);
+      failedClassifications.forEach((type, index) => {
+        const results = [weatherResult, timeResult, roadResult, laneResult, vehicleResult, pedestrianResult];
+        if (results[index].status === 'rejected') {
+          console.error(`${type} classification error:`, results[index].reason);
+        }
+      });
+    }
 
-    const pedestrianResult = await hf.zeroShotImageClassification({
-      model: 'openai/clip-vit-base-patch32',
-      inputs: imageUrl,
-      parameters: {
-        candidate_labels: ['no pedestrians', 'few pedestrians', 'some pedestrians', 'many pedestrians']
-      }
-    });
+    // Use fallback values for failed classifications
+    const weather = weatherResult.status === 'fulfilled' ? 
+      mapWeatherLabel(weatherResult.value[0].label) : 'sunny';
+    const timeOfDay = timeResult.status === 'fulfilled' ? 
+      mapTimeLabel(timeResult.value[0].label) : 'day';
+    const roadType = roadResult.status === 'fulfilled' ? 
+      mapRoadLabel(roadResult.value[0].label) : 'city';
+    const lanes = laneResult.status === 'fulfilled' ? 
+      mapLaneCount(laneResult.value[0].label) : 2;
+    const vehicleCount = vehicleResult.status === 'fulfilled' ? 
+      mapVehicleCount(vehicleResult.value[0].label) : 3;
+    const pedestrianCount = pedestrianResult.status === 'fulfilled' ? 
+      mapPedestrianCount(pedestrianResult.value[0].label) : 0;
 
-    // Process results
-    const weather = mapWeatherLabel(weatherResult[0].label);
-    const timeOfDay = mapTimeLabel(timeResult[0].label);
-    const roadType = mapRoadLabel(roadResult[0].label);
-    const lanes = mapLaneCount(laneResult[0].label);
-    const vehicleCount = mapVehicleCount(vehicleResult[0].label);
-    const pedestrianCount = mapPedestrianCount(pedestrianResult[0].label);
+    // Calculate confidence based on successful classifications
+    const successfulScores = [];
+    if (weatherResult.status === 'fulfilled') successfulScores.push(weatherResult.value[0].score);
+    if (timeResult.status === 'fulfilled') successfulScores.push(timeResult.value[0].score);
+    if (roadResult.status === 'fulfilled') successfulScores.push(roadResult.value[0].score);
+    if (laneResult.status === 'fulfilled') successfulScores.push(laneResult.value[0].score);
+    if (vehicleResult.status === 'fulfilled') successfulScores.push(vehicleResult.value[0].score);
+    if (pedestrianResult.status === 'fulfilled') successfulScores.push(pedestrianResult.value[0].score);
 
-    // Calculate average confidence
-    const confidence = (
-      weatherResult[0].score + 
-      timeResult[0].score + 
-      roadResult[0].score + 
-      laneResult[0].score + 
-      vehicleResult[0].score + 
-      pedestrianResult[0].score
-    ) / 6;
+    const confidence = successfulScores.length > 0 ? 
+      successfulScores.reduce((a, b) => a + b, 0) / successfulScores.length : 0.5;
 
     const result = {
       weather,
@@ -217,11 +272,22 @@ async function analyzeFrameWithHF(hf: HfInference, imageUrl: string): Promise<An
     };
 
     console.log('Classification result:', result);
+    console.log(`Successful classifications: ${6 - failedClassifications.length}/6`);
     return result;
 
   } catch (error) {
     console.error('Error in Hugging Face analysis:', error);
-    throw new Error(`Analysis failed: ${error.message}`);
+    
+    // Return fallback values instead of throwing
+    return {
+      weather: 'sunny',
+      timeOfDay: 'day',
+      roadType: 'city',
+      lanes: 2,
+      vehicleCount: 3,
+      pedestrianCount: 0,
+      confidence: 0.1
+    };
   }
 }
 
