@@ -8,7 +8,7 @@ export const AieouHeader = () => {
           <Brain className="h-8 w-8 text-primary-foreground" />
         </div>
         <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent">
-          AIEOU
+          AI-E-O-U
         </h1>
       </div>
       <p className="text-lg text-muted-foreground font-medium">

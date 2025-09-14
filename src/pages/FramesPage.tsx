@@ -1,15 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useFramesBySequenceId } from "@/hooks/useFrames";
 import { useSequencesByPipelineId } from "@/hooks/useSequences";
 import { usePipelineById } from "@/hooks/usePipelines";
 import { useProjectById } from "@/hooks/useProjects";
+import { FrameFilters } from "@/components/frames/FrameFilters";
 import { 
   Image as ImageIcon, 
   Target, 
@@ -38,12 +36,28 @@ const FramesPage = () => {
     roadType: 'all',
     trafficDensity: 'all',
     weather: 'all',
-    accuracyThreshold: 0
+    accuracyThreshold: 0,
+    status: 'all',
+    vehicleCountMin: 0,
+    vehicleCountMax: 100,
+    laneCount: 'all'
   });
 
   const { data: project } = useProjectById(projectId || '');
   const { data: pipeline } = usePipelineById(pipelineId || '');
   const { data: frames = [], isLoading, error } = useFramesBySequenceId(sequenceId || '');
+
+  // Extract available filter values from the data
+  const availableValues = useMemo(() => {
+    const timeOfDay = [...new Set(frames.map(f => f.time_of_day).filter(Boolean))];
+    const roadType = [...new Set(frames.map(f => f.scene_type).filter(Boolean))];
+    const trafficDensity = [...new Set(frames.map(f => f.traffic_density).filter(Boolean))];
+    const weather = [...new Set(frames.map(f => f.weather_condition).filter(Boolean))];
+    const status = [...new Set(frames.map(f => f.status).filter(Boolean))];
+    const laneCount = [...new Set(frames.map(f => f.lane_count).filter(Boolean))].sort((a, b) => a - b);
+    
+    return { timeOfDay, roadType, trafficDensity, weather, status, laneCount };
+  }, [frames]);
 
   // Filter frames based on current filters
   const filteredFrames = frames.filter(frame => {
@@ -51,7 +65,11 @@ const FramesPage = () => {
     if (filters.roadType !== 'all' && frame.scene_type !== filters.roadType) return false;
     if (filters.trafficDensity !== 'all' && frame.traffic_density !== filters.trafficDensity) return false;
     if (filters.weather !== 'all' && frame.weather_condition !== filters.weather) return false;
+    if (filters.status !== 'all' && frame.status !== filters.status) return false;
+    if (filters.laneCount !== 'all' && frame.lane_count?.toString() !== filters.laneCount) return false;
     if ((frame.accuracy || 0) < filters.accuracyThreshold) return false;
+    if ((frame.vehicle_count || 0) < filters.vehicleCountMin) return false;
+    if ((frame.vehicle_count || 0) > filters.vehicleCountMax) return false;
     return true;
   });
 
@@ -145,89 +163,18 @@ const FramesPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Filters Panel */}
         <Card className="lg:col-span-1 shadow-card border-border/50">
-          <CardHeader>
+          <CardHeader className="pb-4">
             <CardTitle className="flex items-center text-lg">
               <Filter className="h-5 w-5 mr-2" />
-              Filters
+              Advanced Filters
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="timeOfDay" className="text-sm font-medium">Time of Day</Label>
-              <Select value={filters.timeOfDay} onValueChange={(value) => setFilters({...filters, timeOfDay: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All times" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All times</SelectItem>
-                  <SelectItem value="day">Day</SelectItem>
-                  <SelectItem value="night">Night</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="roadType" className="text-sm font-medium">Road Type</Label>
-              <Select value={filters.roadType} onValueChange={(value) => setFilters({...filters, roadType: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All roads" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All roads</SelectItem>
-                  <SelectItem value="highway">Highway</SelectItem>
-                  <SelectItem value="city">City</SelectItem>
-                  <SelectItem value="suburb">Suburb</SelectItem>
-                  <SelectItem value="rural">Rural</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="weather" className="text-sm font-medium">Weather</Label>
-              <Select value={filters.weather} onValueChange={(value) => setFilters({...filters, weather: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All weather" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All weather</SelectItem>
-                  <SelectItem value="sunny">Sunny</SelectItem>
-                  <SelectItem value="cloudy">Cloudy</SelectItem>
-                  <SelectItem value="rainfall">Rainfall</SelectItem>
-                  <SelectItem value="snowfall">Snowfall</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="accuracyThreshold" className="text-sm font-medium">
-                Min Accuracy: {(filters.accuracyThreshold * 100).toFixed(0)}%
-              </Label>
-              <Input
-                type="range"
-                id="accuracyThreshold"
-                min="0"
-                max="1"
-                step="0.05"
-                value={filters.accuracyThreshold}
-                onChange={(e) => setFilters({...filters, accuracyThreshold: parseFloat(e.target.value)})}
-                className="mt-2"
-              />
-            </div>
-
-            <Button
-              onClick={() => setFilters({
-                timeOfDay: 'all',
-                roadType: 'all',
-                trafficDensity: 'all',
-                weather: 'all',
-                accuracyThreshold: 0
-              })}
-              variant="outline"
-              size="sm"
-              className="w-full"
-            >
-              Clear Filters
-            </Button>
+          <CardContent>
+            <FrameFilters
+              filters={filters}
+              onFiltersChange={setFilters}
+              availableValues={availableValues}
+            />
           </CardContent>
         </Card>
 

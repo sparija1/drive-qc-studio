@@ -63,9 +63,23 @@ export function AppSidebar() {
   return <Sidebar className={`transition-smooth ${collapsed ? "w-16" : "w-64"}`} collapsible="icon">
       <SidebarContent className="gradient-surface border-r border-sidebar-border">
         {/* Header */}
-        {!collapsed && <div className="px-6 py-4 border-b border-sidebar-border">
-            
-          </div>}
+        {!collapsed && (
+          <div className="px-6 py-4 border-b border-sidebar-border">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg gradient-primary shadow-glow">
+                <Activity className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold gradient-primary bg-clip-text text-transparent">
+                  AI-E-O-U
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  AI Enables Operational Utility
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Quick Stats Section */}
         {!collapsed}
 
