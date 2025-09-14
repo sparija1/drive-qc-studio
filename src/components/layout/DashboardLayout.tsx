@@ -2,10 +2,8 @@ import { Outlet } from "react-router-dom";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Breadcrumbs } from "./Breadcrumbs";
-
 export function DashboardLayout() {
-  return (
-    <div className="flex min-h-screen w-full">
+  return <div className="flex min-h-screen w-full">
       <AppSidebar />
       <div className="flex-1 flex flex-col">
         <header className="h-16 flex items-center border-b border-border bg-card px-6 shadow-card">
@@ -13,9 +11,9 @@ export function DashboardLayout() {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
-                <span className="text-sm font-bold text-primary-foreground">QC</span>
+                
               </div>
-              <h1 className="text-xl font-bold text-foreground">Drive Data QC</h1>
+              
             </div>
           </div>
           <div className="ml-auto">
@@ -26,6 +24,5 @@ export function DashboardLayout() {
           <Outlet />
         </main>
       </div>
-    </div>
-  );
+    </div>;
 }
