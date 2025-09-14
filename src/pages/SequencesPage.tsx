@@ -7,12 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreateSequenceForm } from "@/components/forms/CreateSequenceForm";
 import { BulkImageUpload } from "@/components/upload/BulkImageUpload";
-import { CSVAttributeUpload } from "@/components/upload/CSVAttributeUpload";
+
 import { FrameTable } from "@/components/sequences/FrameTable";
 import { useSequencesByPipelineId, useDeleteSequence } from "@/hooks/useSequences";
 import { usePipelineById } from "@/hooks/usePipelines";
 import { useProjectById } from "@/hooks/useProjects";
-import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route, Trash2, Loader2, FileSpreadsheet, ChevronDown, ChevronRight } from "lucide-react";
+import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route, Trash2, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -271,45 +271,6 @@ const SequencesPage = () => {
                 </CardContent>
               </Card>
 
-              {/* CSV Attributes Upload */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileSpreadsheet className="h-5 w-5" />
-                    CSV Attributes Upload
-                  </CardTitle>
-                  <CardDescription>
-                    Upload CSV files to add attributes to existing sequence frames
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {sequences.length > 0 ? (
-                    <div className="space-y-4">
-                      {sequences.map(sequence => (
-                        <div key={sequence.id} className="border rounded-lg p-4 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium">{sequence.name}</h4>
-                            <Badge variant="outline">{sequence.total_frames} frames</Badge>
-                          </div>
-                          <CSVAttributeUpload 
-                            sequenceId={sequence.id} 
-                            onUploadComplete={() => {
-                              console.log('CSV upload completed for sequence:', sequence.id);
-                              refetch();
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FileSpreadsheet className="h-12 w-12 mx-auto mb-4" />
-                      <p>No sequences available for attribute upload</p>
-                      <p className="text-sm">Create a sequence first using the Sequential Images Upload</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
           </div>
         </TabsContent>

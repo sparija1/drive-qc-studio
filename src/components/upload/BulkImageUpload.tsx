@@ -115,7 +115,7 @@ export const BulkImageUpload = ({ pipelineId, onUploadComplete }: BulkImageUploa
               frame_number: index + 1,
               timestamp_ms: (index + 1) * 33.33, // Assuming 30fps
               image_url: publicUrl,
-              accuracy: 0.85 + Math.random() * 0.15 // Mock accuracy
+              
             });
 
           if (frameError) {
