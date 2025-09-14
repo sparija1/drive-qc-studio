@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { pipeline } from 'https://esm.sh/@huggingface/transformers@3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,49 +54,70 @@ serve(async (req) => {
 
     console.log(`Found ${frames.length} frames to analyze`);
 
-    // Mock Python model analysis - in real implementation, this would call your AI model
+    // Initialize CLIP classifier pipeline
+    const classifier = await pipeline('zero-shot-image-classification', 'openai/clip-vit-base-patch32');
+
+    // Classification labels as per your Python script
+    const weatherLabels = ["Sunny", "Cloudy", "Rainfall", "Snowfall"];
+    const timeLabels = ["Day", "Night"];
+    const roadLabels = ["Highway", "City", "Suburb", "Rural"];
+    const laneLabels = ["more than two lanes", "two way traffic", "one lane"];
+
     const analysisResults = [];
     
     for (const frame of frames) {
       console.log(`Analyzing frame ${frame.frame_number}`);
       
-      // Simulate AI model processing time
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Mock analysis result - vary results based on frame number for demonstration
-      const mockResult = {
-        weather: ['sunny', 'cloudy', 'rainy'][frame.frame_number % 3],
-        day_night: frame.frame_number % 2 === 0 ? 'day' : 'night',
-        road_type: ['urban', 'highway', 'residential'][frame.frame_number % 3],
-        lanes: Math.floor(Math.random() * 4) + 1,
-        parking: Math.random() > 0.5,
-        underground: false
-      };
+      try {
+        if (!frame.image_url) {
+          console.error(`No image URL for frame ${frame.frame_number}`);
+          continue;
+        }
 
-      // Update frame with analysis results
-      const { error: updateError } = await supabaseClient
-        .from('frames')
-        .update({
-          weather_condition: mockResult.weather,
-          scene_type: mockResult.day_night,
-          traffic_density: mockResult.road_type,
-          lane_count: mockResult.lanes,
-          vehicle_count: mockResult.parking ? 1 : 0,
-          accuracy: 0.85 + Math.random() * 0.1, // Mock confidence score
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', frame.id);
+        // Classify image using CLIP model
+        const [weatherResult, timeResult, roadResult, laneResult] = await Promise.all([
+          classifier(frame.image_url, weatherLabels.map(l => `a photo of ${l.toLowerCase()} weather`)),
+          classifier(frame.image_url, timeLabels.map(l => `a photo taken during ${l.toLowerCase()}`)),
+          classifier(frame.image_url, roadLabels.map(l => `a photo of a ${l.toLowerCase()} road`)),
+          classifier(frame.image_url, laneLabels.map(l => `a photo of a road with ${l}`))
+        ]);
 
-      if (updateError) {
-        console.error('Error updating frame:', updateError);
+        const analysisResult = {
+          weather: weatherLabels[weatherResult.findIndex((r: any) => r.score === Math.max(...weatherResult.map((item: any) => item.score)))],
+          day_night: timeLabels[timeResult.findIndex((r: any) => r.score === Math.max(...timeResult.map((item: any) => item.score)))],
+          road_type: roadLabels[roadResult.findIndex((r: any) => r.score === Math.max(...roadResult.map((item: any) => item.score)))],
+          lanes: laneLabels[laneResult.findIndex((r: any) => r.score === Math.max(...laneResult.map((item: any) => item.score)))]
+        };
+
+        // Update frame with analysis results
+        const { error: updateError } = await supabaseClient
+          .from('frames')
+          .update({
+            weather_condition: analysisResult.weather,
+            scene_type: analysisResult.day_night,
+            traffic_density: analysisResult.road_type,
+            lane_count: analysisResult.lanes === 'one lane' ? 1 : analysisResult.lanes === 'two way traffic' ? 2 : 3,
+            vehicle_count: 0, // Not classified in this model
+            accuracy: 0.85, // Fixed confidence score
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', frame.id);
+
+        if (updateError) {
+          console.error('Error updating frame:', updateError);
+          continue;
+        }
+
+        analysisResults.push({
+          frameId: frame.id,
+          frameNumber: frame.frame_number,
+          analysis: analysisResult
+        });
+
+      } catch (error) {
+        console.error(`Error analyzing frame ${frame.frame_number}:`, error);
         continue;
       }
-
-      analysisResults.push({
-        frameId: frame.id,
-        frameNumber: frame.frame_number,
-        analysis: mockResult
-      });
     }
 
     console.log(`Analysis complete. Updated ${analysisResults.length} frames`);
