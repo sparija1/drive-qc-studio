@@ -8,7 +8,7 @@ from io import BytesIO
 import uvicorn
 from typing import Dict, Any
 
-app = FastAPI(title="Frame Analysis Service", version="1.0.0")
+app = FastAPI(title="AIEOU Frame Analysis Service", version="1.0.0")
 
 # Load pretrained CLIP model
 print("Loading CLIP model...")
@@ -97,7 +97,7 @@ def classify_image(image_url: str) -> Dict[str, Any]:
 
 @app.get("/")
 async def root():
-    return {"message": "Frame Analysis Service is running!"}
+    return {"message": "AIEOU Frame Analysis Service is running!"}
 
 @app.get("/health")
 async def health_check():
