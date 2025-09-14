@@ -4,15 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { CreateSequenceForm } from "@/components/forms/CreateSequenceForm";
 import { BulkImageUpload } from "@/components/upload/BulkImageUpload";
 import { CSVAttributeUpload } from "@/components/upload/CSVAttributeUpload";
 import { FrameTable } from "@/components/sequences/FrameTable";
-import { AieouHeader } from "@/components/branding/AieouHeader";
 import { useSequencesByPipelineId, useDeleteSequence } from "@/hooks/useSequences";
 import { usePipelineById } from "@/hooks/usePipelines";
 import { useProjectById } from "@/hooks/useProjects";
-import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route, Trash2, Loader2, FileSpreadsheet } from "lucide-react";
+import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route, Trash2, Loader2, FileSpreadsheet, ChevronDown, ChevronRight } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,7 @@ const SequencesPage = () => {
   const deleteSequence = useDeleteSequence();
   const { toast } = useToast();
   const [analyzingSequences, setAnalyzingSequences] = useState<Set<string>>(new Set());
+  const [expandedSequences, setExpandedSequences] = useState<Set<string>>(new Set());
 
   const handleAnalyzeFrames = async (sequenceId: string) => {
     setAnalyzingSequences(prev => new Set(prev).add(sequenceId));
@@ -104,8 +105,6 @@ const SequencesPage = () => {
 
   return (
     <div className="space-y-6">
-      <AieouHeader />
-      
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
@@ -137,82 +136,101 @@ const SequencesPage = () => {
             
             <div className="space-y-4">{/* Changed from grid to vertical spacing */}
               {sequences.map((sequence) => (
-                <Card key={sequence.id} className="shadow-card hover:shadow-elevated transition-smooth gradient-surface border-border/50">
-                  <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <Link 
-                          to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}
-                          className="text-lg font-semibold text-foreground hover:text-primary transition-smooth"
-                        >
-                          {sequence.name}
-                        </Link>
-                        <div className="flex items-center space-x-2">
-                          <Badge 
-                            variant={sequence.status === 'processed' ? 'default' : 'secondary'}
-                            className="capitalize"
-                          >
-                            {sequence.status}
-                          </Badge>
-                          <Link to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}>
-                            <Button variant="outline" size="sm">
-                              <Play className="h-4 w-4 mr-2" />
-                              Play
-                            </Button>
-                          </Link>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
+                <Collapsible
+                  open={expandedSequences.has(sequence.id)}
+                  onOpenChange={(open) => {
+                    const newExpanded = new Set(expandedSequences);
+                    if (open) {
+                      newExpanded.add(sequence.id);
+                    } else {
+                      newExpanded.delete(sequence.id);
+                    }
+                    setExpandedSequences(newExpanded);
+                  }}
+                >
+                  <Card key={sequence.id} className="shadow-card hover:shadow-elevated transition-smooth gradient-surface border-border/50">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CollapsibleTrigger asChild>
+                            <button className="flex items-center gap-2 text-lg font-semibold text-foreground hover:text-primary transition-smooth text-left">
+                              {expandedSequences.has(sequence.id) ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                              {sequence.name}
+                            </button>
+                          </CollapsibleTrigger>
+                          <div className="flex items-center space-x-2">
+                            <Badge 
+                              variant={sequence.status === 'processed' ? 'default' : 'secondary'}
+                              className="capitalize"
+                            >
+                              {sequence.status}
+                            </Badge>
+                            <Link to={`/projects/${projectId}/pipelines/${pipelineId}/sequences/${sequence.id}/video`}>
                               <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
+                                <Play className="h-4 w-4 mr-2" />
+                                Play
                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Sequence</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete "{sequence.name}"? This will also delete all frames associated with this sequence. This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteSequence.mutate(sequence.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                            </Link>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Sequence</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{sequence.name}"? This will also delete all frames associated with this sequence. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteSequence.mutate(sequence.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </div>
-                      </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    <div className="text-sm text-muted-foreground">
-                      <span>FPS: {sequence.fps || 'N/A'}</span>
-                      <span className="mx-2">•</span>
-                      <span>Frames: {sequence.total_frames || 0}</span>
-                      <span className="mx-2">•</span>
-                      <span>Duration: {sequence.duration ? `${sequence.duration}s` : 'N/A'}</span>
-                    </div>
+                    </CardHeader>
                     
-                    <div className="text-sm text-muted-foreground">
-                      <span>Created: {new Date(sequence.created_at).toLocaleDateString()}</span>
-                    </div>
-                    
-                    {/* Frame Tile Grid for Sequences with Frames */}
-                    {sequence.total_frames > 0 && (
-                      <div className="mt-4 pt-4 border-t">
-                      <FrameTable 
-                        sequenceId={sequence.id} 
-                        showAnalyzeButton={true}
-                        onAnalyzeFrames={() => handleAnalyzeFrames(sequence.id)}
-                        analyzing={analyzingSequences.has(sequence.id)}
-                      />
+                    <CardContent className="space-y-4">
+                      <div className="text-sm text-muted-foreground">
+                        <span>FPS: {sequence.fps || 'N/A'}</span>
+                        <span className="mx-2">•</span>
+                        <span>Frames: {sequence.total_frames || 0}</span>
+                        <span className="mx-2">•</span>
+                        <span>Duration: {sequence.duration ? `${sequence.duration}s` : 'N/A'}</span>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
+                      
+                      <div className="text-sm text-muted-foreground">
+                        <span>Created: {new Date(sequence.created_at).toLocaleDateString()}</span>
+                      </div>
+                      
+                      {/* Collapsible Frame Table */}
+                      <CollapsibleContent>
+                        {sequence.total_frames > 0 && (
+                          <div className="mt-4 pt-4 border-t">
+                          <FrameTable 
+                            sequenceId={sequence.id} 
+                            showAnalyzeButton={true}
+                            onAnalyzeFrames={() => handleAnalyzeFrames(sequence.id)}
+                            analyzing={analyzingSequences.has(sequence.id)}
+                          />
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </CardContent>
+                  </Card>
+                </Collapsible>
               ))}
             </div>
 

@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreateProjectForm } from "@/components/forms/CreateProjectForm";
+import { AieouHeader } from "@/components/branding/AieouHeader";
 import { FolderOpen, GitBranch, PlayCircle, Image, Calendar, Activity, Trash2 } from "lucide-react";
 import { useProjects, useDeleteProject } from "@/hooks/useProjects";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -71,6 +72,7 @@ const ProjectsPage = () => {
 
   return (
     <div className="space-y-6">
+      <AieouHeader />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Projects</h1>
