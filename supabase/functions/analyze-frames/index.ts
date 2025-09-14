@@ -60,49 +60,37 @@ serve(async (req) => {
     
     // Helper function to call Python service for image analysis
     async function analyzeImageWithPython(imageUrl: string) {
-      try {
-        const response = await fetch(`${PYTHON_SERVICE_URL}/analyze`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ image_url: imageUrl }),
-        });
+      const response = await fetch(`${PYTHON_SERVICE_URL}/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image_url: imageUrl }),
+      });
 
-        if (!response.ok) {
-          throw new Error(`Python service error: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        return {
-          weather: result.weather,
-          dayNight: result.day_night,
-          roadType: result.road_type,
-          lanes: result.lanes,
-          confidence: result.confidence_scores
-        };
-      } catch (error) {
-        console.error('Error calling Python service:', error);
-        // Fallback to mock data if Python service is unavailable
-        return {
-          weather: "Sunny",
-          dayNight: "Day", 
-          roadType: "City",
-          lanes: "two way traffic",
-          confidence: { overall: 0.5 }
-        };
+      if (!response.ok) {
+        throw new Error(`Python service error: ${response.status} ${response.statusText}`);
       }
+
+      const result = await response.json();
+      return {
+        weather: result.weather,
+        dayNight: result.day_night,
+        roadType: result.road_type,
+        lanes: result.lanes,
+        confidence: result.confidence_scores
+      };
     }
     
     for (const frame of frames) {
       console.log(`Analyzing frame ${frame.frame_number}`);
       
-      try {
-        if (!frame.image_url) {
-          console.error(`No image URL for frame ${frame.frame_number}`);
-          continue;
-        }
+      if (!frame.image_url) {
+        console.error(`No image URL for frame ${frame.frame_number}`);
+        continue;
+      }
 
+      try {
         // Call Python service for analysis
         const classification = await analyzeImageWithPython(frame.image_url);
 
@@ -140,7 +128,14 @@ serve(async (req) => {
 
       } catch (error) {
         console.error(`Error analyzing frame ${frame.frame_number}:`, error);
-        continue;
+        // Return error response if any frame fails
+        return new Response(
+          JSON.stringify({ 
+            error: `Failed to analyze frame ${frame.frame_number}: ${error.message}`,
+            frame_number: frame.frame_number
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
     }
 
