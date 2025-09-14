@@ -33,13 +33,10 @@ export const FrameTileGrid = ({
   const handleEdit = (frame: any) => {
     setEditingFrame(frame.id);
     setEditData({
-      weather_condition: frame.weather_condition || '',
-      scene_type: frame.scene_type || '',
-      traffic_density: frame.traffic_density || '',
-      lane_count: frame.lane_count || 1,
-      vehicle_count: frame.vehicle_count || 0,
-      pedestrian_count: frame.pedestrian_count || 0,
-      notes: frame.notes || ''
+      weather: frame.weather || '',
+      "day-night": frame["day-night"] || '',
+      "road-type": frame["road-type"] || '',
+      lanes: frame.lanes || ''
     });
   };
 
@@ -256,10 +253,10 @@ export const FrameTileGrid = ({
                           <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <Label htmlFor="weather_condition">Weather</Label>
+                                <Label htmlFor="weather">Weather</Label>
                                 <Select
-                                  value={editData.weather_condition}
-                                  onValueChange={(value) => setEditData({...editData, weather_condition: value})}
+                                  value={editData.weather}
+                                  onValueChange={(value) => setEditData({...editData, weather: value})}
                                 >
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select..." />
@@ -274,10 +271,10 @@ export const FrameTileGrid = ({
                                 </Select>
                               </div>
                               <div>
-                                <Label htmlFor="scene_type">Day/Night</Label>
+                                <Label htmlFor="day-night">Day/Night</Label>
                                 <Select
-                                  value={editData.scene_type}
-                                  onValueChange={(value) => setEditData({...editData, scene_type: value})}
+                                  value={editData["day-night"]}
+                                  onValueChange={(value) => setEditData({...editData, "day-night": value})}
                                 >
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select..." />
@@ -294,53 +291,40 @@ export const FrameTileGrid = ({
 
                             <div className="grid grid-cols-2 gap-3">
                               <div>
-                                <Label htmlFor="traffic_density">Road Type</Label>
+                                <Label htmlFor="road-type">Road Type</Label>
                                 <Select
-                                  value={editData.traffic_density}
-                                  onValueChange={(value) => setEditData({...editData, traffic_density: value})}
+                                  value={editData["road-type"]}
+                                  onValueChange={(value) => setEditData({...editData, "road-type": value})}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select..." />
+                                  </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="highway">Highway</SelectItem>
+                                  <SelectItem value="city">City</SelectItem>
+                                  <SelectItem value="suburb">Suburb</SelectItem>
+                                  <SelectItem value="rural">Rural</SelectItem>
+                                </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label htmlFor="lanes">Lanes</Label>
+                                <Select
+                                  value={editData.lanes}
+                                  onValueChange={(value) => setEditData({...editData, lanes: value})}
                                 >
                                   <SelectTrigger>
                                     <SelectValue placeholder="Select..." />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="urban">Urban</SelectItem>
-                                    <SelectItem value="highway">Highway</SelectItem>
-                                    <SelectItem value="residential">Residential</SelectItem>
-                                    <SelectItem value="rural">Rural</SelectItem>
+                                    <SelectItem value="one lane">One lane</SelectItem>
+                                    <SelectItem value="two way traffic">Two way traffic</SelectItem>
+                                    <SelectItem value="more than two lanes">More than two lanes</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
-                              <div>
-                                <Label htmlFor="lane_count">Lanes</Label>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  max="8"
-                                  value={editData.lane_count}
-                                  onChange={(e) => setEditData({...editData, lane_count: parseInt(e.target.value) || 1})}
-                                />
-                              </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-3">
-                                <Label>Parking Available</Label>
-                                <div className="flex items-center space-x-2">
-                                  <Switch
-                                    checked={editData.vehicle_count > 0}
-                                    onCheckedChange={(checked) => setEditData({...editData, vehicle_count: checked ? 1 : 0})}
-                                  />
-                                  <span className="text-sm">{editData.vehicle_count > 0 ? 'Yes' : 'No'}</span>
-                                </div>
-                              </div>
-                              <div className="space-y-3">
-                                <Label>Underground</Label>
-                                <div className="flex items-center space-x-2">
-                                  <Switch checked={false} disabled />
-                                  <span className="text-sm text-muted-foreground">No</span>
-                                </div>
-                              </div>
-                            </div>
 
                             <div className="flex justify-end space-x-2 pt-4">
                               <Button variant="outline" onClick={handleCancel}>

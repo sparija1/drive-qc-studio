@@ -33,13 +33,10 @@ export const FrameTable = ({
   const handleEdit = (frame: any) => {
     setEditingFrame(frame.id);
     setEditData({
-      weather_condition: frame.weather_condition || '',
-      scene_type: frame.scene_type || '',
-      traffic_density: frame.traffic_density || '',
-      lane_count: frame.lane_count || 1,
-      vehicle_count: frame.vehicle_count || 0,
-      pedestrian_count: frame.pedestrian_count || 0,
-      notes: frame.notes || ''
+      weather: frame.weather || '',
+      "day-night": frame["day-night"] || '',
+      "road-type": frame["road-type"] || '',
+      lanes: frame.lanes || ''
     });
   };
 
@@ -174,7 +171,7 @@ export const FrameTable = ({
               <TableHead className="font-semibold text-gray-700">Time</TableHead>
               <TableHead className="font-semibold text-gray-700">Road Type</TableHead>
               <TableHead className="w-16 font-semibold text-gray-700 text-center">Lanes</TableHead>
-              <TableHead className="w-16 font-semibold text-gray-700 text-center">Vehicles</TableHead>
+              
               <TableHead className="font-semibold text-gray-700">Status</TableHead>
               <TableHead className="w-20 font-semibold text-gray-700 text-center">Action</TableHead>
             </TableRow>
@@ -227,9 +224,6 @@ export const FrameTable = ({
                 <TableCell className="text-center">
                   <span className="font-medium">{frame.lanes || '-'}</span>
                 </TableCell>
-                <TableCell className="text-center">
-                  <span className="font-medium">-</span>
-                </TableCell>
                 <TableCell>
                   {getStatusBadge(frame)}
                 </TableCell>
@@ -253,10 +247,10 @@ export const FrameTable = ({
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <Label htmlFor="weather_condition">Weather</Label>
+                              <Label htmlFor="weather">Weather</Label>
                               <Select
-                                value={editData.weather_condition}
-                                onValueChange={(value) => setEditData({...editData, weather_condition: value})}
+                                value={editData.weather}
+                                onValueChange={(value) => setEditData({...editData, weather: value})}
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select..." />
@@ -270,10 +264,10 @@ export const FrameTable = ({
                               </Select>
                             </div>
                             <div>
-                              <Label htmlFor="scene_type">Time of Day</Label>
+                              <Label htmlFor="day-night">Time of Day</Label>
                               <Select
-                                value={editData.scene_type}
-                                onValueChange={(value) => setEditData({...editData, scene_type: value})}
+                                value={editData["day-night"]}
+                                onValueChange={(value) => setEditData({...editData, "day-night": value})}
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select..." />
@@ -288,10 +282,10 @@ export const FrameTable = ({
 
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <Label htmlFor="traffic_density">Road Type</Label>
+                              <Label htmlFor="road-type">Road Type</Label>
                               <Select
-                                value={editData.traffic_density}
-                                onValueChange={(value) => setEditData({...editData, traffic_density: value})}
+                                value={editData["road-type"]}
+                                onValueChange={(value) => setEditData({...editData, "road-type": value})}
                               >
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select..." />
@@ -305,37 +299,23 @@ export const FrameTable = ({
                               </Select>
                             </div>
                             <div>
-                              <Label htmlFor="lane_count">Lanes</Label>
-                              <Input
-                                type="number"
-                                min="1"
-                                max="8"
-                                value={editData.lane_count}
-                                onChange={(e) => setEditData({...editData, lane_count: parseInt(e.target.value) || 1})}
-                              />
+                              <Label htmlFor="lanes">Lanes</Label>
+                              <Select
+                                value={editData.lanes}
+                                onValueChange={(value) => setEditData({...editData, lanes: value})}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="one lane">One lane</SelectItem>
+                                  <SelectItem value="two way traffic">Two way traffic</SelectItem>
+                                  <SelectItem value="more than two lanes">More than two lanes</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <Label htmlFor="vehicle_count">Vehicle Count</Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                value={editData.vehicle_count}
-                                onChange={(e) => setEditData({...editData, vehicle_count: parseInt(e.target.value) || 0})}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="pedestrian_count">Pedestrian Count</Label>
-                              <Input
-                                type="number"
-                                min="0"
-                                value={editData.pedestrian_count}
-                                onChange={(e) => setEditData({...editData, pedestrian_count: parseInt(e.target.value) || 0})}
-                              />
-                            </div>
-                          </div>
 
                           <div className="flex justify-end space-x-2 pt-4">
                             <Button variant="outline" onClick={handleCancel}>

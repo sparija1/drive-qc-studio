@@ -21,6 +21,7 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
   const { toast } = useToast();
   const [editingFrame, setEditingFrame] = useState<string | null>(null);
   const [editData, setEditData] = useState<any>({});
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleEdit = (frame: any) => {
     setEditingFrame(frame.id);
@@ -30,6 +31,7 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
       "road-type": frame["road-type"] || '',
       lanes: frame.lanes || ''
     });
+    setDialogOpen(true);
   };
 
   const handleSave = async () => {
@@ -42,6 +44,7 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
       });
       setEditingFrame(null);
       setEditData({});
+      setDialogOpen(false);
     } catch (error) {
       console.error('Error updating frame:', error);
     }
@@ -50,6 +53,7 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
   const handleCancel = () => {
     setEditingFrame(null);
     setEditData({});
+    setDialogOpen(false);
   };
 
   if (isLoading) {
@@ -101,7 +105,7 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
                 </Badge>
               </div>
               <div className="absolute top-2 right-2">
-                <Dialog>
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                   <DialogTrigger asChild>
                     <Button 
                       variant="secondary" 
