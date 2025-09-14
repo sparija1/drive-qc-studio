@@ -17,6 +17,46 @@ const TIME_LABELS = ["Day", "Night"];
 const ROAD_LABELS = ["Highway", "City", "Suburb", "Rural"];
 const LANE_LABELS = ["more than two lanes", "two way traffic", "one lane"];
 
+// Mapping functions to convert classification results to database-compliant values
+function mapWeatherToDb(weather: string): string {
+  const mapping: { [key: string]: string } = {
+    'Sunny': 'sunny',
+    'Cloudy': 'cloudy', 
+    'Rainfall': 'rainy',
+    'Snowfall': 'snowy'
+  };
+  return mapping[weather] || 'sunny';
+}
+
+function mapTimeToDb(time: string): string {
+  const mapping: { [key: string]: string } = {
+    'Day': 'day',
+    'Night': 'night',
+    'Dawn': 'dawn', 
+    'Dusk': 'dusk'
+  };
+  return mapping[time] || 'day';
+}
+
+function mapRoadToDb(road: string): string {
+  const mapping: { [key: string]: string } = {
+    'Highway': 'highway',
+    'City': 'urban',
+    'Suburb': 'suburban', 
+    'Rural': 'rural'
+  };
+  return mapping[road] || 'urban';
+}
+
+function mapStatusToDb(status: string): string {
+  const mapping: { [key: string]: string } = {
+    'analyzed': 'approved',
+    'failed': 'needs_review',
+    'pending': 'pending'
+  };
+  return mapping[status] || 'pending';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -166,13 +206,13 @@ serve(async (req) => {
         const { data: updateData, error: updateError } = await supabaseClient
           .from('frames')
           .update({
-            weather_condition: analysisResult.weather?.toLowerCase(),
-            time_of_day: analysisResult.timeOfDay?.toLowerCase(),
-            scene_type: analysisResult.roadType?.toLowerCase(),
+            weather_condition: mapWeatherToDb(analysisResult.weather),
+            time_of_day: mapTimeToDb(analysisResult.timeOfDay),
+            scene_type: mapRoadToDb(analysisResult.roadType),
             lane_count: analysisResult.lanes,
             vehicle_count: Math.floor(Math.random() * 12), // Random vehicle count 0-11
             accuracy: classification.confidence,
-            status: 'analyzed',
+            status: mapStatusToDb('analyzed'),
             updated_at: new Date().toISOString()
           })
           .eq('id', frame.id);
@@ -198,12 +238,12 @@ serve(async (req) => {
         await supabaseClient
           .from('frames')
           .update({
-            weather_condition: fallback.weather?.toLowerCase(),
-            time_of_day: fallback.timeOfDay?.toLowerCase(),
-            scene_type: fallback.roadType?.toLowerCase(),
+            weather_condition: mapWeatherToDb(fallback.weather),
+            time_of_day: mapTimeToDb(fallback.timeOfDay),
+            scene_type: mapRoadToDb(fallback.roadType),
             lane_count: fallback.lanes,
             accuracy: fallback.confidence,
-            status: 'failed',
+            status: mapStatusToDb('failed'),
             updated_at: new Date().toISOString()
           })
           .eq('id', frame.id);
