@@ -113,10 +113,8 @@ export const BulkImageUpload = ({ pipelineId, onUploadComplete }: BulkImageUploa
               sequence_id: sequence.id,
               user_id: user.id,
               frame_number: index + 1,
-              timestamp_ms: (index + 1) * 33.33, // Assuming 30fps
               image_url: publicUrl,
-              
-            });
+            } as any);
 
           if (frameError) {
             console.error(`Frame creation error for ${file.name}:`, frameError);
