@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateSequenceForm } from "@/components/forms/CreateSequenceForm";
 import { BulkImageUpload } from "@/components/upload/BulkImageUpload";
 import { CSVAttributeUpload } from "@/components/upload/CSVAttributeUpload";
-import { FrameTileGrid } from "@/components/sequences/FrameTileGrid";
+import { FrameTable } from "@/components/sequences/FrameTable";
 import { AieouHeader } from "@/components/branding/AieouHeader";
 import { useSequencesByPipelineId, useDeleteSequence } from "@/hooks/useSequences";
 import { usePipelineById } from "@/hooks/usePipelines";
@@ -203,12 +203,12 @@ const SequencesPage = () => {
                     {/* Frame Tile Grid for Sequences with Frames */}
                     {sequence.total_frames > 0 && (
                       <div className="mt-4 pt-4 border-t">
-                        <FrameTileGrid 
-                          sequenceId={sequence.id} 
-                          showAnalyzeButton={true}
-                          onAnalyzeFrames={() => handleAnalyzeFrames(sequence.id)}
-                          analyzing={analyzingSequences.has(sequence.id)}
-                        />
+                      <FrameTable 
+                        sequenceId={sequence.id} 
+                        showAnalyzeButton={true}
+                        onAnalyzeFrames={() => handleAnalyzeFrames(sequence.id)}
+                        analyzing={analyzingSequences.has(sequence.id)}
+                      />
                       </div>
                     )}
                   </CardContent>
