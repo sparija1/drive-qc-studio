@@ -8,6 +8,7 @@ import { useSequencesByPipelineId } from "@/hooks/useSequences";
 import { usePipelineById } from "@/hooks/usePipelines";
 import { useProjectById } from "@/hooks/useProjects";
 import { FrameFilters } from "@/components/frames/FrameFilters";
+import { ImageAnalysisButton } from "@/components/frames/ImageAnalysisButton";
 import { 
   Image as ImageIcon, 
   Target, 
@@ -49,8 +50,6 @@ const FramesPage = () => {
 
   // Extract available filter values from the data
   const availableValues = useMemo(() => {
-    console.log('Frames data for filters:', frames);
-    
     const timeOfDay = [...new Set(frames.map(f => f.time_of_day).filter(Boolean))];
     const roadType = [...new Set(frames.map(f => f.scene_type).filter(Boolean))];
     const trafficDensity = [...new Set(frames.map(f => f.traffic_density).filter(Boolean))];
@@ -58,22 +57,11 @@ const FramesPage = () => {
     const status = [...new Set(frames.map(f => f.status).filter(Boolean))];
     const laneCount = [...new Set(frames.map(f => f.lane_count).filter(Boolean))].sort((a, b) => a - b);
     
-    console.log('Available filter values:', {
-      timeOfDay,
-      roadType,
-      trafficDensity,
-      weather,
-      status,
-      laneCount
-    });
-    
     return { timeOfDay, roadType, trafficDensity, weather, status, laneCount };
   }, [frames]);
 
   // Filter frames based on current filters
   const filteredFrames = frames.filter(frame => {
-    console.log('Filtering frame:', frame, 'with filters:', filters);
-    
     if (filters.timeOfDay !== 'all' && frame.time_of_day !== filters.timeOfDay) return false;
     if (filters.roadType !== 'all' && frame.scene_type !== filters.roadType) return false;
     if (filters.trafficDensity !== 'all' && frame.traffic_density !== filters.trafficDensity) return false;
@@ -85,8 +73,6 @@ const FramesPage = () => {
     if ((frame.vehicle_count || 0) > filters.vehicleCountMax) return false;
     return true;
   });
-
-  console.log('Filtered frames count:', filteredFrames.length, 'out of total:', frames.length);
 
   if (isLoading) {
     return (
@@ -185,11 +171,19 @@ const FramesPage = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <FrameFilters
-              filters={filters}
-              onFiltersChange={setFilters}
-              availableValues={availableValues}
-            />
+            <div className="space-y-4">
+              <ImageAnalysisButton 
+                frames={frames} 
+                onAnalysisComplete={() => {
+                  // Optionally refresh data or show success message
+                }}
+              />
+              <FrameFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                availableValues={availableValues}
+              />
+            </div>
           </CardContent>
         </Card>
 
