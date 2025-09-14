@@ -137,6 +137,7 @@ const SequencesPage = () => {
             <div className="space-y-4">{/* Changed from grid to vertical spacing */}
               {sequences.map((sequence) => (
                 <Collapsible
+                  key={sequence.id}
                   open={expandedSequences.has(sequence.id)}
                   onOpenChange={(open) => {
                     const newExpanded = new Set(expandedSequences);
@@ -148,7 +149,7 @@ const SequencesPage = () => {
                     setExpandedSequences(newExpanded);
                   }}
                 >
-                  <Card key={sequence.id} className="shadow-card hover:shadow-elevated transition-smooth gradient-surface border-border/50">
+                  <Card className="shadow-card hover:shadow-elevated transition-smooth gradient-surface border-border/50">
                     <CardHeader>
                         <div className="flex items-center justify-between">
                           <CollapsibleTrigger asChild>
