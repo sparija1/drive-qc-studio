@@ -2,79 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Modern Data Annotation QC Dashboard Design System */
+/* AIEOU - Telus Digital Design System */
 
 @layer base {
   :root {
-    /* Core backgrounds - Professional dark theme */
-    --background: 222 47% 4%;
-    --foreground: 213 31% 91%;
+    /* Telus Brand Colors */
+    --background: 0 0% 100%;
+    --foreground: 227 84% 16%;
 
     /* Card and surface colors */
-    --card: 222 47% 6%;
-    --card-foreground: 213 31% 91%;
+    --card: 0 0% 100%;
+    --card-foreground: 227 84% 16%;
 
-    --popover: 222 47% 6%;
-    --popover-foreground: 213 31% 91%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 227 84% 16%;
 
-    /* Primary brand - Electric blue gradient */
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 4%;
-    --primary-glow: 220 100% 70%;
+    /* Telus Purple Primary */
+    --primary: 259 88% 44%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 259 88% 54%;
 
-    /* Secondary surfaces */
-    --secondary: 222 47% 8%;
-    --secondary-foreground: 213 31% 91%;
+    /* Telus Green Secondary */
+    --secondary: 152 69% 31%;
+    --secondary-foreground: 0 0% 100%;
 
     /* Muted elements */
-    --muted: 222 47% 10%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 25% 27%;
 
-    /* Accent colors - Purple accent */
-    --accent: 258 90% 66%;
-    --accent-foreground: 222 47% 4%;
+    /* Telus Teal Accent */
+    --accent: 184 81% 44%;
+    --accent-foreground: 0 0% 100%;
 
     /* Status colors */
-    --success: 142 76% 36%;
-    --success-foreground: 213 31% 91%;
+    --success: 152 69% 31%;
+    --success-foreground: 0 0% 100%;
     
-    --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 4%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 227 84% 16%;
     
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 213 31% 91%;
+    --destructive: 348 83% 47%;
+    --destructive-foreground: 0 0% 100%;
 
     /* Interactive elements */
-    --border: 222 47% 12%;
-    --input: 222 47% 8%;
-    --ring: 217 91% 60%;
+    --border: 214 32% 91%;
+    --input: 0 0% 100%;
+    --ring: 259 88% 44%;
 
     /* Design tokens */
-    --radius: 0.75rem;
+    --radius: 0.5rem;
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(258 90% 66%));
-    --gradient-subtle: linear-gradient(180deg, hsl(222 47% 6%), hsl(222 47% 4%));
-    --gradient-surface: linear-gradient(145deg, hsl(222 47% 6%), hsl(222 47% 8%));
+    /* Telus Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(259 88% 44%), hsl(184 81% 44%));
+    --gradient-secondary: linear-gradient(135deg, hsl(152 69% 31%), hsl(184 81% 44%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --gradient-surface: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 96%));
     
     /* Shadows */
-    --shadow-glow: 0 0 30px hsl(217 91% 60% / 0.3);
-    --shadow-card: 0 4px 20px hsl(222 47% 2% / 0.4);
-    --shadow-elevated: 0 8px 40px hsl(222 47% 2% / 0.6);
+    --shadow-glow: 0 0 30px hsl(259 88% 44% / 0.2);
+    --shadow-card: 0 2px 10px hsl(227 84% 16% / 0.08);
+    --shadow-elevated: 0 8px 30px hsl(227 84% 16% / 0.12);
     
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    /* Sidebar colors for our dashboard */
-    --sidebar-background: 222 47% 5%;
-    --sidebar-foreground: 213 31% 91%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 222 47% 4%;
-    --sidebar-accent: 222 47% 8%;
-    --sidebar-accent-foreground: 213 31% 91%;
-    --sidebar-border: 222 47% 12%;
-    --sidebar-ring: 217 91% 60%;
+    /* Sidebar colors */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 227 84% 16%;
+    --sidebar-primary: 259 88% 44%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 227 84% 16%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 259 88% 44%;
+
+    /* Telus specific attribute colors */
+    --weather-sunny: 43 96% 56%;
+    --weather-cloudy: 210 20% 65%;
+    --weather-rainy: 220 39% 51%;
+    --weather-snowy: 184 81% 44%;
+    
+    --time-day: 43 96% 56%;
+    --time-night: 259 88% 44%;
+    --time-dawn: 25 95% 53%;
+    --time-dusk: 271 76% 53%;
+
+    --road-urban: 152 69% 31%;
+    --road-highway: 220 39% 51%;
+    --road-residential: 184 81% 44%;
+    --road-rural: 82 84% 47%;
   }
 }
 
