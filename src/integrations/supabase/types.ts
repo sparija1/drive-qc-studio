@@ -49,70 +49,46 @@ export type Database = {
       }
       frames: {
         Row: {
-          accuracy: number | null
-          confidence_score: number | null
           created_at: string
+          "day-night": string | null
           frame_number: number
           id: string
           image_url: string | null
-          lane_count: number | null
-          notes: string | null
-          pedestrian_count: number | null
-          scene_type: string | null
+          lanes: string | null
+          "road-type": string | null
           sequence_id: string
           status: string | null
-          time_of_day: string | null
-          timestamp_ms: number
-          traffic_density: string | null
-          traffic_light_status: string | null
           updated_at: string
           user_id: string | null
-          vehicle_count: number | null
-          weather_condition: string | null
+          weather: string | null
         }
         Insert: {
-          accuracy?: number | null
-          confidence_score?: number | null
           created_at?: string
+          "day-night"?: string | null
           frame_number: number
           id?: string
           image_url?: string | null
-          lane_count?: number | null
-          notes?: string | null
-          pedestrian_count?: number | null
-          scene_type?: string | null
+          lanes?: string | null
+          "road-type"?: string | null
           sequence_id: string
           status?: string | null
-          time_of_day?: string | null
-          timestamp_ms: number
-          traffic_density?: string | null
-          traffic_light_status?: string | null
           updated_at?: string
           user_id?: string | null
-          vehicle_count?: number | null
-          weather_condition?: string | null
+          weather?: string | null
         }
         Update: {
-          accuracy?: number | null
-          confidence_score?: number | null
           created_at?: string
+          "day-night"?: string | null
           frame_number?: number
           id?: string
           image_url?: string | null
-          lane_count?: number | null
-          notes?: string | null
-          pedestrian_count?: number | null
-          scene_type?: string | null
+          lanes?: string | null
+          "road-type"?: string | null
           sequence_id?: string
           status?: string | null
-          time_of_day?: string | null
-          timestamp_ms?: number
-          traffic_density?: string | null
-          traffic_light_status?: string | null
           updated_at?: string
           user_id?: string | null
-          vehicle_count?: number | null
-          weather_condition?: string | null
+          weather?: string | null
         }
         Relationships: [
           {
