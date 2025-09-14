@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,12 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateSequenceForm } from "@/components/forms/CreateSequenceForm";
 import { BulkImageUpload } from "@/components/upload/BulkImageUpload";
 import { CSVAttributeUpload } from "@/components/upload/CSVAttributeUpload";
-import { FramePreviewGrid } from "@/components/sequences/FramePreviewGrid";
+import { FrameTileGrid } from "@/components/sequences/FrameTileGrid";
+import { AieouHeader } from "@/components/branding/AieouHeader";
 import { useSequencesByPipelineId, useDeleteSequence } from "@/hooks/useSequences";
 import { usePipelineById } from "@/hooks/usePipelines";
 import { useProjectById } from "@/hooks/useProjects";
 import { PlayCircle, Image, Clock, Target, ArrowLeft, Play, Video, Camera, Users, Car, Route, Trash2, Loader2, FileSpreadsheet } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const SequencesPage = () => {
   const { projectId, pipelineId } = useParams();
@@ -19,6 +23,40 @@ const SequencesPage = () => {
   const { data: pipeline } = usePipelineById(pipelineId!);
   const { data: sequences = [], isLoading, error, refetch } = useSequencesByPipelineId(pipelineId!);
   const deleteSequence = useDeleteSequence();
+  const { toast } = useToast();
+  const [analyzingSequences, setAnalyzingSequences] = useState<Set<string>>(new Set());
+
+  const handleAnalyzeFrames = async (sequenceId: string) => {
+    setAnalyzingSequences(prev => new Set(prev).add(sequenceId));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-frames', {
+        body: { sequenceId }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Analysis Complete",
+        description: data.message || "Frames have been analyzed successfully.",
+      });
+      
+      refetch(); // Refresh the data to show updated attributes
+    } catch (error) {
+      console.error('Error analyzing frames:', error);
+      toast({
+        title: "Analysis Failed",
+        description: "There was an error analyzing the frames. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzingSequences(prev => {
+        const next = new Set(prev);
+        next.delete(sequenceId);
+        return next;
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -66,6 +104,8 @@ const SequencesPage = () => {
 
   return (
     <div className="space-y-6">
+      <AieouHeader />
+      
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
@@ -78,7 +118,7 @@ const SequencesPage = () => {
             <h1 className="text-3xl font-bold text-foreground">Sequences</h1>
           </div>
           <p className="text-muted-foreground">
-            Video sequences in <span className="font-medium text-foreground">{pipeline.name}</span>
+            Video sequences in <span className="font-medium text-primary">{pipeline.name}</span>
           </p>
         </div>
       </div>
@@ -160,10 +200,15 @@ const SequencesPage = () => {
                       <span>Created: {new Date(sequence.created_at).toLocaleDateString()}</span>
                     </div>
                     
-                    {/* Frame Preview for Sequences with Frames */}
+                    {/* Frame Tile Grid for Sequences with Frames */}
                     {sequence.total_frames > 0 && (
                       <div className="mt-4 pt-4 border-t">
-                        <FramePreviewGrid sequenceId={sequence.id} />
+                        <FrameTileGrid 
+                          sequenceId={sequence.id} 
+                          showAnalyzeButton={true}
+                          onAnalyzeFrames={() => handleAnalyzeFrames(sequence.id)}
+                          analyzing={analyzingSequences.has(sequence.id)}
+                        />
                       </div>
                     )}
                   </CardContent>

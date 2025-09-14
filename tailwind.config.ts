@@ -66,6 +66,25 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Telus attribute colors
+        weather: {
+          sunny: "hsl(var(--weather-sunny))",
+          cloudy: "hsl(var(--weather-cloudy))",
+          rainy: "hsl(var(--weather-rainy))",
+          snowy: "hsl(var(--weather-snowy))",
+        },
+        time: {
+          day: "hsl(var(--time-day))",
+          night: "hsl(var(--time-night))",
+          dawn: "hsl(var(--time-dawn))",
+          dusk: "hsl(var(--time-dusk))",
+        },
+        road: {
+          urban: "hsl(var(--road-urban))",
+          highway: "hsl(var(--road-highway))",
+          residential: "hsl(var(--road-residential))",
+          rural: "hsl(var(--road-rural))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
