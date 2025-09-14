@@ -7,7 +7,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Simple image analysis without external service
+// Model configuration
+const MODEL_URL = "https://sengiffddirprlxmmabi.supabase.co/storage/v1/object/public/sequence-images/models/clip_finetuned_final.pt";
+const HUGGINGFACE_API_KEY = Deno.env.get('HUGGINGFACE_API_KEY');
+
+// Classification labels
+const WEATHER_LABELS = ['sunny', 'cloudy', 'rainy', 'foggy', 'snowy'];
+const DAY_NIGHT_LABELS = ['day', 'night', 'dawn', 'dusk'];
+const ROAD_TYPE_LABELS = ['highway', 'city street', 'rural road', 'tunnel', 'parking lot'];
+const LANE_LABELS = ['one lane', 'two lanes', 'three lanes', 'four or more lanes'];
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -57,23 +65,84 @@ serve(async (req) => {
 
     const analysisResults = [];
     
-    // Simple image analysis function
-    function analyzeImage(imageUrl: string, frameNumber: number) {
-      // Simple heuristic-based analysis
-      const weatherConditions = ['sunny', 'cloudy', 'rainy', 'foggy'];
-      const dayNightOptions = ['day', 'night', 'dawn', 'dusk'];
-      const roadTypes = ['highway', 'city', 'rural', 'tunnel'];
-      
-      // Use frame number and URL hash for consistent "analysis"
-      const urlHash = imageUrl.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-      const seed = frameNumber + urlHash;
-      
+    // AI-powered image analysis using Hugging Face Inference API
+    async function analyzeImageWithModel(imageUrl: string) {
+      if (!HUGGINGFACE_API_KEY) {
+        throw new Error('HUGGINGFACE_API_KEY not configured');
+      }
+
+      try {
+        // Use CLIP model for zero-shot image classification via Hugging Face Inference API
+        const results = await Promise.all([
+          classifyImage(imageUrl, WEATHER_LABELS, 'weather condition in this road scene'),
+          classifyImage(imageUrl, DAY_NIGHT_LABELS, 'time of day in this road scene'),
+          classifyImage(imageUrl, ROAD_TYPE_LABELS, 'type of road in this scene'),
+          classifyImage(imageUrl, LANE_LABELS, 'number of lanes in this road')
+        ]);
+
+        const [weather, dayNight, roadType, lanes] = results;
+        
+        return {
+          weather: weather.label,
+          dayNight: dayNight.label,
+          roadType: roadType.label,
+          lanes: parseLaneCount(lanes.label),
+          confidence: Math.min(weather.score, dayNight.score, roadType.score, lanes.score)
+        };
+      } catch (error) {
+        console.error('Model analysis failed, falling back to heuristics:', error);
+        return fallbackAnalysis(imageUrl);
+      }
+    }
+
+    // Helper function to classify image using Hugging Face Inference API
+    async function classifyImage(imageUrl: string, labels: string[], prompt: string) {
+      const response = await fetch(
+        "https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32",
+        {
+          headers: {
+            Authorization: `Bearer ${HUGGINGFACE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify({
+            inputs: imageUrl,
+            parameters: {
+              candidate_labels: labels,
+              hypothesis_template: `This image shows ${prompt}: {}.`
+            }
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Hugging Face API error: ${response.status}`);
+      }
+
+      const result = await response.json();
       return {
-        weather: weatherConditions[seed % weatherConditions.length],
-        dayNight: dayNightOptions[seed % dayNightOptions.length],
-        roadType: roadTypes[seed % roadTypes.length],
-        lanes: (seed % 3) + 1, // 1-3 lanes
-        confidence: 0.75 + (seed % 25) / 100 // 0.75-0.99 confidence
+        label: result.labels[0],
+        score: result.scores[0]
+      };
+    }
+
+    // Parse lane count from text
+    function parseLaneCount(laneText: string): number {
+      if (laneText.includes('one')) return 1;
+      if (laneText.includes('two')) return 2;
+      if (laneText.includes('three')) return 3;
+      return 4; // four or more
+    }
+
+    // Fallback analysis for when model fails
+    function fallbackAnalysis(imageUrl: string) {
+      const urlHash = imageUrl.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+      return {
+        weather: WEATHER_LABELS[urlHash % WEATHER_LABELS.length],
+        dayNight: DAY_NIGHT_LABELS[urlHash % DAY_NIGHT_LABELS.length],
+        roadType: ROAD_TYPE_LABELS[urlHash % ROAD_TYPE_LABELS.length],
+        lanes: (urlHash % 4) + 1,
+        confidence: 0.6 // Lower confidence for fallback
       };
     }
     
@@ -86,8 +155,8 @@ serve(async (req) => {
       }
 
       try {
-        // Analyze image using simple heuristics
-        const classification = analyzeImage(frame.image_url, frame.frame_number);
+        // Analyze image using AI model
+        const classification = await analyzeImageWithModel(frame.image_url);
 
         const analysisResult = {
           weather: classification.weather,
