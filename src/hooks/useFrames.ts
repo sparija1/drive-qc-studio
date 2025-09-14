@@ -16,9 +16,14 @@ export interface Frame {
   weather_condition: string | null;
   traffic_density: string | null;
   traffic_light_status: string | null;
+  time_of_day: string | null;
+  status: string | null;
+  notes: string | null;
   accuracy: number | null;
+  confidence_score: number | null;
   created_at: string;
   updated_at: string;
+  user_id: string | null;
 }
 
 export interface CreateFrameData {
