@@ -9,6 +9,7 @@ import { usePipelineById } from "@/hooks/usePipelines";
 import { useProjectById } from "@/hooks/useProjects";
 import { FrameFilters } from "@/components/frames/FrameFilters";
 import { ImageAnalysisButton } from "@/components/frames/ImageAnalysisButton";
+import { ServerAnalysisButton } from "@/components/frames/ServerAnalysisButton";
 import { 
   Image as ImageIcon, 
   Target, 
@@ -172,6 +173,13 @@ const FramesPage = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              <ServerAnalysisButton 
+                sequenceId={sequenceId || ''} 
+                onAnalysisComplete={() => {
+                  // Refresh frame data after analysis
+                  window.location.reload();
+                }}
+              />
               <ImageAnalysisButton 
                 frames={frames} 
                 onAnalysisComplete={() => {
