@@ -40,19 +40,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         // Defer profile fetching with setTimeout to prevent deadlocks
         if (session?.user) {
           setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            setProfile(profileData as Profile);
+            try {
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+              setProfile(profileData as Profile);
+            } catch (error) {
+              console.error('Error fetching profile:', error);
+              setProfile(null);
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -68,12 +73,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (session?.user) {
         setTimeout(async () => {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-          setProfile(profileData as Profile);
+          try {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+            setProfile(profileData as Profile);
+          } catch (error) {
+            console.error('Error fetching profile:', error);
+            setProfile(null);
+          }
         }, 0);
       }
       setLoading(false);
