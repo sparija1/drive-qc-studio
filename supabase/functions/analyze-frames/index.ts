@@ -93,7 +93,7 @@ serve(async (req) => {
           "day-night": analysisResult.timeOfDay,
           "road-type": analysisResult.roadType,
           lanes: analysisResult.lanes.toString(),
-          status: 'analyzed',
+          status: 'approved',
           updated_at: new Date().toISOString()
         };
 
