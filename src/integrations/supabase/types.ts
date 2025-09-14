@@ -61,6 +61,7 @@ export type Database = {
           scene_type: string | null
           sequence_id: string
           status: string | null
+          time_of_day: string | null
           timestamp_ms: number
           traffic_density: string | null
           traffic_light_status: string | null
@@ -82,6 +83,7 @@ export type Database = {
           scene_type?: string | null
           sequence_id: string
           status?: string | null
+          time_of_day?: string | null
           timestamp_ms: number
           traffic_density?: string | null
           traffic_light_status?: string | null
@@ -103,6 +105,7 @@ export type Database = {
           scene_type?: string | null
           sequence_id?: string
           status?: string | null
+          time_of_day?: string | null
           timestamp_ms?: number
           traffic_density?: string | null
           traffic_light_status?: string | null
@@ -283,7 +286,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      analyze_frame_attributes: {
+        Args: { frame_image_url: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
