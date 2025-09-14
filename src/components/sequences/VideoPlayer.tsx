@@ -93,9 +93,9 @@ export const VideoPlayer = ({ sequenceId, fps }: VideoPlayerProps) => {
               <div className="flex items-center justify-between text-sm text-muted-foreground">
                 <span>Frame {currentFrame + 1} of {totalFrames}</span>
                 <span>
-                  {currentFrameData?.timestamp_ms 
-                    ? `${(currentFrameData.timestamp_ms / 1000).toFixed(2)}s`
-                    : 'N/A'
+                  {currentFrame > 0 
+                    ? `${(currentFrame / 30).toFixed(2)}s`
+                    : '0.00s'
                   }
                 </span>
               </div>

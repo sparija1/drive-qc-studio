@@ -207,28 +207,28 @@ export const FrameTable = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {getWeatherIcon(frame.weather_condition)}
+                    {getWeatherIcon(frame.weather)}
                     <span className="capitalize text-sm">
-                      {frame.weather_condition || '-'}
+                      {frame.weather || '-'}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {getTimeIcon(frame.scene_type)}
+                    {getTimeIcon(frame["day-night"])}
                     <span className="capitalize text-sm">
-                      {frame.scene_type || '-'}
+                      {frame["day-night"] || '-'}
                     </span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  {getRoadTypeBadge(frame.traffic_density)}
+                  {getRoadTypeBadge(frame["road-type"])}
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="font-medium">{frame.lane_count || '-'}</span>
+                  <span className="font-medium">{frame.lanes || '-'}</span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="font-medium">{frame.vehicle_count || 0}</span>
+                  <span className="font-medium">-</span>
                 </TableCell>
                 <TableCell>
                   {getStatusBadge(frame)}

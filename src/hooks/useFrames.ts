@@ -7,20 +7,12 @@ export interface Frame {
   id: string;
   sequence_id: string;
   frame_number: number;
-  timestamp_ms: number;
   image_url: string | null;
-  vehicle_count: number | null;
-  pedestrian_count: number | null;
-  lane_count: number | null;
-  scene_type: string | null;
-  weather_condition: string | null;
-  traffic_density: string | null;
-  traffic_light_status: string | null;
-  time_of_day: string | null;
+  weather: string | null;
+  "day-night": string | null;
+  "road-type": string | null;
+  lanes: string | null;
   status: string | null;
-  notes: string | null;
-  accuracy: number | null;
-  confidence_score: number | null;
   created_at: string;
   updated_at: string;
   user_id: string | null;
@@ -29,29 +21,20 @@ export interface Frame {
 export interface CreateFrameData {
   sequence_id: string;
   frame_number: number;
-  timestamp_ms: number;
   image_url?: string;
   user_id?: string;
-  vehicle_count?: number;
-  pedestrian_count?: number;
-  lane_count?: number;
-  scene_type?: string;
-  weather_condition?: string;
-  traffic_density?: string;
-  traffic_light_status?: string;
-  accuracy?: number;
+  weather?: string;
+  "day-night"?: string;
+  "road-type"?: string;
+  lanes?: string;
 }
 
 export interface UpdateFrameData {
-  vehicle_count?: number;
-  pedestrian_count?: number;
-  lane_count?: number;
-  scene_type?: string;
-  weather_condition?: string;
-  traffic_density?: string;
-  traffic_light_status?: string;
-  time_of_day?: string;
-  accuracy?: number;
+  weather?: string;
+  "day-night"?: string;
+  "road-type"?: string;
+  lanes?: string;
+  status?: string;
 }
 
 export const useFramesBySequenceId = (sequenceId: string) => {
@@ -65,7 +48,7 @@ export const useFramesBySequenceId = (sequenceId: string) => {
         .order('frame_number', { ascending: true });
       
       if (error) throw error;
-      return data as Frame[];
+      return data as unknown as Frame[];
     },
     enabled: !!sequenceId,
   });
@@ -82,7 +65,7 @@ export const useCreateFrame = () => {
 
       const { data, error } = await supabase
         .from('frames')
-        .insert([{ ...frameData, user_id: user.id }])
+        .insert([{ ...frameData, user_id: user.id }] as any)
         .select()
         .single();
       

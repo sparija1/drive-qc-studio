@@ -9,22 +9,17 @@ interface FrameFiltersProps {
   filters: {
     timeOfDay: string;
     roadType: string;
-    trafficDensity: string;
     weather: string;
-    accuracyThreshold: number;
     status: string;
-    vehicleCountMin: number;
-    vehicleCountMax: number;
-    laneCount: string;
+    lanes: string;
   };
   onFiltersChange: (filters: any) => void;
   availableValues: {
     timeOfDay: string[];
     roadType: string[];
-    trafficDensity: string[];
     weather: string[];
     status: string[];
-    laneCount: number[];
+    lanes: string[];
   };
 }
 
@@ -37,13 +32,9 @@ export const FrameFilters = ({ filters, onFiltersChange, availableValues }: Fram
     onFiltersChange({
       timeOfDay: 'all',
       roadType: 'all',
-      trafficDensity: 'all',
       weather: 'all',
-      accuracyThreshold: 0,
       status: 'all',
-      vehicleCountMin: 0,
-      vehicleCountMax: 100,
-      laneCount: 'all'
+      lanes: 'all'
     });
   };
 
@@ -51,12 +42,9 @@ export const FrameFilters = ({ filters, onFiltersChange, availableValues }: Fram
     let count = 0;
     if (filters.timeOfDay !== 'all') count++;
     if (filters.roadType !== 'all') count++;
-    if (filters.trafficDensity !== 'all') count++;
     if (filters.weather !== 'all') count++;
     if (filters.status !== 'all') count++;
-    if (filters.laneCount !== 'all') count++;
-    if (filters.accuracyThreshold > 0) count++;
-    if (filters.vehicleCountMin > 0 || filters.vehicleCountMax < 100) count++;
+    if (filters.lanes !== 'all') count++;
     return count;
   };
 
@@ -121,23 +109,6 @@ export const FrameFilters = ({ filters, onFiltersChange, availableValues }: Fram
           </Select>
         </div>
 
-        {/* Traffic Density Filter */}
-        <div>
-          <Label className="text-sm font-medium">Traffic Density</Label>
-          <Select value={filters.trafficDensity} onValueChange={(value) => updateFilter('trafficDensity', value)}>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="All densities" />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border border-border">
-              <SelectItem value="all">All densities</SelectItem>
-              {availableValues.trafficDensity.map(value => (
-                <SelectItem key={value} value={value} className="capitalize">
-                  {value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
         {/* Weather Filter */}
         <div>
@@ -175,70 +146,24 @@ export const FrameFilters = ({ filters, onFiltersChange, availableValues }: Fram
           </Select>
         </div>
 
-        {/* Lane Count Filter */}
+        {/* Lanes Filter */}
         <div>
-          <Label className="text-sm font-medium">Lane Count</Label>
-          <Select value={filters.laneCount} onValueChange={(value) => updateFilter('laneCount', value)}>
+          <Label className="text-sm font-medium">Lanes</Label>
+          <Select value={filters.lanes} onValueChange={(value) => updateFilter('lanes', value)}>
             <SelectTrigger className="bg-background">
-              <SelectValue placeholder="All lane counts" />
+              <SelectValue placeholder="All lane types" />
             </SelectTrigger>
             <SelectContent className="bg-popover border border-border">
-              <SelectItem value="all">All lane counts</SelectItem>
-              {availableValues.laneCount.map(value => (
-                <SelectItem key={value.toString()} value={value.toString()}>
-                  {value} {value === 1 ? 'lane' : 'lanes'}
+              <SelectItem value="all">All lane types</SelectItem>
+              {availableValues.lanes.map(value => (
+                <SelectItem key={value} value={value} className="capitalize">
+                  {value}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Vehicle Count Range Filter */}
-        <div>
-          <Label className="text-sm font-medium">
-            Vehicle Count: {filters.vehicleCountMin} - {filters.vehicleCountMax}
-          </Label>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-xs text-muted-foreground">Min</Label>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={filters.vehicleCountMin}
-                onChange={(e) => updateFilter('vehicleCountMin', parseInt(e.target.value) || 0)}
-                className="bg-background"
-              />
-            </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Max</Label>
-              <Input
-                type="number"
-                min="0"
-                max="100"
-                value={filters.vehicleCountMax}
-                onChange={(e) => updateFilter('vehicleCountMax', parseInt(e.target.value) || 100)}
-                className="bg-background"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Accuracy Threshold Filter */}
-        <div>
-          <Label className="text-sm font-medium">
-            Min Accuracy: {(filters.accuracyThreshold * 100).toFixed(0)}%
-          </Label>
-          <Input
-            type="range"
-            min="0"
-            max="1"
-            step="0.05"
-            value={filters.accuracyThreshold}
-            onChange={(e) => updateFilter('accuracyThreshold', parseFloat(e.target.value))}
-            className="mt-2"
-          />
-        </div>
       </div>
     </div>
   );

@@ -103,7 +103,6 @@ export const CreateSequenceForm = ({ pipelineId }: CreateSequenceFormProps) => {
           await createFrame.mutateAsync({
             sequence_id: sequence.id,
             frame_number: i + 1,
-            timestamp_ms: i * (1000 / 30), // Default 30 FPS
             image_url: publicUrl,
             user_id: user.id, // Ensure user_id is included
           });

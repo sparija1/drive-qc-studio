@@ -182,8 +182,8 @@ export const FrameTileGrid = ({
                     <div className="space-y-1">
                       <div className="text-xs font-medium text-muted-foreground">Weather</div>
                       <div className="flex items-center gap-1">
-                        {getWeatherIcon(frame.weather_condition)}
-                        <span className="text-sm capitalize">{frame.weather_condition || 'Unknown'}</span>
+                        {getWeatherIcon(frame.weather)}
+                        <span className="text-sm capitalize">{frame.weather || 'Unknown'}</span>
                       </div>
                     </div>
 
@@ -191,8 +191,8 @@ export const FrameTileGrid = ({
                     <div className="space-y-1">
                       <div className="text-xs font-medium text-muted-foreground">Time</div>
                       <div className="flex items-center gap-1">
-                        {getTimeIcon(frame.scene_type)}
-                        <span className="text-sm capitalize">{frame.scene_type || 'Unknown'}</span>
+                        {getTimeIcon(frame["day-night"])}
+                        <span className="text-sm capitalize">{frame["day-night"] || 'Unknown'}</span>
                       </div>
                     </div>
 
@@ -203,18 +203,18 @@ export const FrameTileGrid = ({
                         variant="outline" 
                         className="text-xs px-2 py-0"
                         style={{ 
-                          borderColor: getRoadTypeColor(frame.traffic_density),
-                          color: getRoadTypeColor(frame.traffic_density)
+                          borderColor: getRoadTypeColor(frame["road-type"]),
+                          color: getRoadTypeColor(frame["road-type"])
                         }}
                       >
-                        {frame.traffic_density || 'Unknown'}
+                        {frame["road-type"] || 'Unknown'}
                       </Badge>
                     </div>
 
                     {/* Lanes */}
                     <div className="space-y-1">
                       <div className="text-xs font-medium text-muted-foreground">Lanes</div>
-                      <span className="text-sm font-medium">{frame.lane_count || 0}</span>
+                      <span className="text-sm font-medium">{frame.lanes || 'Unknown'}</span>
                     </div>
                   </div>
 
@@ -222,8 +222,8 @@ export const FrameTileGrid = ({
                     {/* Parking */}
                     <div className="space-y-1">
                       <div className="text-xs font-medium text-muted-foreground">Parking</div>
-                      <Badge variant={frame.vehicle_count > 0 ? "default" : "secondary"} className="text-xs">
-                        {frame.vehicle_count > 0 ? 'Available' : 'None'}
+                      <Badge variant="secondary" className="text-xs">
+                        None
                       </Badge>
                     </div>
 

@@ -12,14 +12,10 @@ import { Frame, useUpdateFrame } from "@/hooks/useFrames";
 import { Save, Edit } from "lucide-react";
 
 const formSchema = z.object({
-  vehicle_count: z.coerce.number().min(0).optional(),
-  pedestrian_count: z.coerce.number().min(0).optional(),
-  lane_count: z.coerce.number().min(1).optional(),
-  scene_type: z.enum(['highway', 'urban', 'rural', 'suburban']).optional(),
-  weather_condition: z.enum(['sunny', 'cloudy', 'rainy', 'foggy', 'snowy']).optional(),
-  traffic_density: z.enum(['light', 'moderate', 'heavy']).optional(),
-  traffic_light_status: z.enum(['red', 'yellow', 'green', 'none']).optional(),
-  accuracy: z.coerce.number().min(0).max(1).optional(),
+  weather: z.enum(['sunny', 'cloudy', 'rainfall', 'snowfall']).optional(),
+  "day-night": z.enum(['day', 'night']).optional(),
+  "road-type": z.enum(['highway', 'city', 'suburb', 'rural']).optional(),
+  lanes: z.string().optional(),
 });
 
 interface FrameAttributeEditorProps {
@@ -33,14 +29,10 @@ export const FrameAttributeEditor = ({ frame }: FrameAttributeEditorProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      vehicle_count: frame.vehicle_count || undefined,
-      pedestrian_count: frame.pedestrian_count || undefined,
-      lane_count: frame.lane_count || undefined,
-      scene_type: frame.scene_type as any || undefined,
-      weather_condition: frame.weather_condition as any || undefined,
-      traffic_density: frame.traffic_density as any || undefined,
-      traffic_light_status: frame.traffic_light_status as any || undefined,
-      accuracy: frame.accuracy || undefined,
+      weather: frame.weather as any || undefined,
+      "day-night": frame["day-night"] as any || undefined,
+      "road-type": frame["road-type"] as any || undefined,
+      lanes: frame.lanes || undefined,
     },
   });
 
@@ -59,14 +51,10 @@ export const FrameAttributeEditor = ({ frame }: FrameAttributeEditorProps) => {
   const handleEdit = () => {
     setIsEditing(true);
     form.reset({
-      vehicle_count: frame.vehicle_count || undefined,
-      pedestrian_count: frame.pedestrian_count || undefined,
-      lane_count: frame.lane_count || undefined,
-      scene_type: frame.scene_type as any || undefined,
-      weather_condition: frame.weather_condition as any || undefined,
-      traffic_density: frame.traffic_density as any || undefined,
-      traffic_light_status: frame.traffic_light_status as any || undefined,
-      accuracy: frame.accuracy || undefined,
+      weather: frame.weather as any || undefined,
+      "day-night": frame["day-night"] as any || undefined,
+      "road-type": frame["road-type"] as any || undefined,
+      lanes: frame.lanes || undefined,
     });
   };
 
@@ -83,53 +71,27 @@ export const FrameAttributeEditor = ({ frame }: FrameAttributeEditorProps) => {
         <CardContent className="space-y-2">
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
-              <span className="text-muted-foreground">Vehicles:</span>
+              <span className="text-muted-foreground">Weather:</span>
               <Badge variant="secondary" className="ml-2">
-                {frame.vehicle_count ?? 'N/A'}
+                {frame.weather ?? 'N/A'}
               </Badge>
             </div>
             <div>
-              <span className="text-muted-foreground">Pedestrians:</span>
+              <span className="text-muted-foreground">Time:</span>
               <Badge variant="secondary" className="ml-2">
-                {frame.pedestrian_count ?? 'N/A'}
+                {frame["day-night"] ?? 'N/A'}
+              </Badge>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Road:</span>
+              <Badge variant="secondary" className="ml-2">
+                {frame["road-type"] ?? 'N/A'}
               </Badge>
             </div>
             <div>
               <span className="text-muted-foreground">Lanes:</span>
               <Badge variant="secondary" className="ml-2">
-                {frame.lane_count ?? 'N/A'}
-              </Badge>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Accuracy:</span>
-              <Badge variant="secondary" className="ml-2">
-                {frame.accuracy ? `${(frame.accuracy * 100).toFixed(1)}%` : 'N/A'}
-              </Badge>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div>
-              <span className="text-muted-foreground">Scene:</span>
-              <Badge variant="outline" className="ml-2">
-                {frame.scene_type ?? 'N/A'}
-              </Badge>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Weather:</span>
-              <Badge variant="outline" className="ml-2">
-                {frame.weather_condition ?? 'N/A'}
-              </Badge>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Traffic:</span>
-              <Badge variant="outline" className="ml-2">
-                {frame.traffic_density ?? 'N/A'}
-              </Badge>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Traffic Light:</span>
-              <Badge variant="outline" className="ml-2">
-                {frame.traffic_light_status ?? 'N/A'}
+                {frame.lanes ?? 'N/A'}
               </Badge>
             </div>
           </div>
@@ -149,85 +111,7 @@ export const FrameAttributeEditor = ({ frame }: FrameAttributeEditorProps) => {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="vehicle_count"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Vehicle Count</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" placeholder="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="pedestrian_count"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Pedestrian Count</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" placeholder="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lane_count"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Lane Count</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="1" placeholder="1" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="accuracy"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Accuracy (0-1)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="0" max="1" step="0.01" placeholder="0.95" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="scene_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Scene Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select scene type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="highway">Highway</SelectItem>
-                        <SelectItem value="urban">Urban</SelectItem>
-                        <SelectItem value="rural">Rural</SelectItem>
-                        <SelectItem value="suburban">Suburban</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="weather_condition"
+                name="weather"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Weather</FormLabel>
@@ -240,9 +124,8 @@ export const FrameAttributeEditor = ({ frame }: FrameAttributeEditorProps) => {
                       <SelectContent>
                         <SelectItem value="sunny">Sunny</SelectItem>
                         <SelectItem value="cloudy">Cloudy</SelectItem>
-                        <SelectItem value="rainy">Rainy</SelectItem>
-                        <SelectItem value="foggy">Foggy</SelectItem>
-                        <SelectItem value="snowy">Snowy</SelectItem>
+                        <SelectItem value="rainfall">Rainfall</SelectItem>
+                        <SelectItem value="snowfall">Snowfall</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -251,20 +134,19 @@ export const FrameAttributeEditor = ({ frame }: FrameAttributeEditorProps) => {
               />
               <FormField
                 control={form.control}
-                name="traffic_density"
+                name="day-night"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Traffic Density</FormLabel>
+                    <FormLabel>Time of Day</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select traffic" />
+                          <SelectValue placeholder="Select time" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="moderate">Moderate</SelectItem>
-                        <SelectItem value="heavy">Heavy</SelectItem>
+                        <SelectItem value="day">Day</SelectItem>
+                        <SelectItem value="night">Night</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -273,21 +155,43 @@ export const FrameAttributeEditor = ({ frame }: FrameAttributeEditorProps) => {
               />
               <FormField
                 control={form.control}
-                name="traffic_light_status"
+                name="road-type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Traffic Light</FormLabel>
+                    <FormLabel>Road Type</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Select road type" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="red">Red</SelectItem>
-                        <SelectItem value="yellow">Yellow</SelectItem>
-                        <SelectItem value="green">Green</SelectItem>
-                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="highway">Highway</SelectItem>
+                        <SelectItem value="city">City</SelectItem>
+                        <SelectItem value="suburb">Suburb</SelectItem>
+                        <SelectItem value="rural">Rural</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lanes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Lanes</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select lanes" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="one lane">One lane</SelectItem>
+                        <SelectItem value="two way traffic">Two way traffic</SelectItem>
+                        <SelectItem value="more than two lanes">More than two lanes</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

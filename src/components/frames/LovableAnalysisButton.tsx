@@ -13,11 +13,10 @@ interface LovableAnalysisButtonProps {
     id: string;
     frame_number: number;
     image_url: string | null;
-    weather_condition: string | null;
-    time_of_day: string | null;
-    scene_type: string | null;
-    lane_count: number | null;
-    accuracy: number | null;
+    weather: string | null;
+    "day-night": string | null;
+    "road-type": string | null;
+    lanes: string | null;
   }>;
   onAnalysisComplete?: () => void;
 }
@@ -123,11 +122,11 @@ export const LovableAnalysisButton = ({ frames, onAnalysisComplete }: LovableAna
           await updateFrame.mutateAsync({
             id: frame.id,
             data: {
-              weather_condition: mapWeatherToDb(result.weather),
-              time_of_day: mapTimeToDb(result['day-night']),
-              scene_type: mapRoadToDb(result['road-type']),
-              lane_count: mapLanesToDb(result.lanes),
-              accuracy: result.confidence || 0.8
+              weather: mapWeatherToDb(result.weather),
+              "day-night": mapTimeToDb(result['day-night']),
+              "road-type": mapRoadToDb(result['road-type']),
+              lanes: result.lanes,
+              status: 'analyzed'
             }
           });
 

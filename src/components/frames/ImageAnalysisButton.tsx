@@ -11,11 +11,10 @@ interface ImageAnalysisButtonProps {
     id: string;
     frame_number: number;
     image_url: string | null;
-    weather_condition: string | null;
-    time_of_day: string | null;
-    scene_type: string | null;
-    lane_count: number | null;
-    accuracy: number | null;
+    weather: string | null;
+    "day-night": string | null;
+    "road-type": string | null;
+    lanes: string | null;
   }>;
   onAnalysisComplete?: () => void;
 }
@@ -77,10 +76,10 @@ export const ImageAnalysisButton = ({ frames, onAnalysisComplete }: ImageAnalysi
           await updateFrame.mutateAsync({
             id: frame.id,
             data: {
-              weather_condition: result.weather,
-              scene_type: result.roadType,
-              lane_count: result.lanes,
-              accuracy: result.confidence
+              weather: result.weather,
+              "road-type": result.roadType,
+              lanes: String(result.lanes),
+              status: 'analyzed'
             }
           });
 

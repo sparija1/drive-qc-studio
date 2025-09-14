@@ -25,15 +25,10 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
   const handleEdit = (frame: any) => {
     setEditingFrame(frame.id);
     setEditData({
-      scene_type: frame.scene_type || '',
-      weather_condition: frame.weather_condition || '',
-      traffic_density: frame.traffic_density || '',
-      traffic_light_status: frame.traffic_light_status || '',
-      vehicle_count: frame.vehicle_count || 0,
-      pedestrian_count: frame.pedestrian_count || 0,
-      lane_count: frame.lane_count || 1,
-      accuracy: frame.accuracy || 0,
-      notes: frame.notes || ''
+      weather: frame.weather || '',
+      "day-night": frame["day-night"] || '',
+      "road-type": frame["road-type"] || '',
+      lanes: frame.lanes || ''
     });
   };
 
@@ -124,10 +119,27 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label htmlFor="scene_type">Scene Type</Label>
+                          <Label htmlFor="weather">Weather</Label>
                           <Select
-                            value={editData.scene_type}
-                            onValueChange={(value) => setEditData({...editData, scene_type: value})}
+                            value={editData.weather}
+                            onValueChange={(value) => setEditData({...editData, weather: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="sunny">Sunny</SelectItem>
+                              <SelectItem value="cloudy">Cloudy</SelectItem>
+                              <SelectItem value="rainfall">Rainfall</SelectItem>
+                              <SelectItem value="snowfall">Snowfall</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <Label htmlFor="day-night">Time</Label>
+                          <Select
+                            value={editData["day-night"]}
+                            onValueChange={(value) => setEditData({...editData, "day-night": value})}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select..." />
@@ -135,26 +147,6 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
                             <SelectContent>
                               <SelectItem value="day">Day</SelectItem>
                               <SelectItem value="night">Night</SelectItem>
-                              <SelectItem value="dawn">Dawn</SelectItem>
-                              <SelectItem value="dusk">Dusk</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="weather_condition">Weather</Label>
-                          <Select
-                            value={editData.weather_condition}
-                            onValueChange={(value) => setEditData({...editData, weather_condition: value})}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="clear">Clear</SelectItem>
-                              <SelectItem value="cloudy">Cloudy</SelectItem>
-                              <SelectItem value="rainy">Rainy</SelectItem>
-                              <SelectItem value="snowy">Snowy</SelectItem>
-                              <SelectItem value="foggy">Foggy</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -162,89 +154,38 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label htmlFor="traffic_density">Traffic Density</Label>
+                          <Label htmlFor="road-type">Road Type</Label>
                           <Select
-                            value={editData.traffic_density}
-                            onValueChange={(value) => setEditData({...editData, traffic_density: value})}
+                            value={editData["road-type"]}
+                            onValueChange={(value) => setEditData({...editData, "road-type": value})}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select..." />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="light">Light</SelectItem>
-                              <SelectItem value="moderate">Moderate</SelectItem>
-                              <SelectItem value="heavy">Heavy</SelectItem>
+                              <SelectItem value="highway">Highway</SelectItem>
+                              <SelectItem value="city">City</SelectItem>
+                              <SelectItem value="suburb">Suburb</SelectItem>
+                              <SelectItem value="rural">Rural</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label htmlFor="traffic_light_status">Traffic Light</Label>
+                          <Label htmlFor="lanes">Lanes</Label>
                           <Select
-                            value={editData.traffic_light_status}
-                            onValueChange={(value) => setEditData({...editData, traffic_light_status: value})}
+                            value={editData.lanes}
+                            onValueChange={(value) => setEditData({...editData, lanes: value})}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select..." />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="red">Red</SelectItem>
-                              <SelectItem value="yellow">Yellow</SelectItem>
-                              <SelectItem value="green">Green</SelectItem>
-                              <SelectItem value="none">None</SelectItem>
+                              <SelectItem value="one lane">One lane</SelectItem>
+                              <SelectItem value="two way traffic">Two way traffic</SelectItem>
+                              <SelectItem value="more than two lanes">More than two lanes</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-3">
-                        <div>
-                          <Label htmlFor="vehicle_count">Vehicles</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            value={editData.vehicle_count}
-                            onChange={(e) => setEditData({...editData, vehicle_count: parseInt(e.target.value) || 0})}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="pedestrian_count">Pedestrians</Label>
-                          <Input
-                            type="number"
-                            min="0"
-                            value={editData.pedestrian_count}
-                            onChange={(e) => setEditData({...editData, pedestrian_count: parseInt(e.target.value) || 0})}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="lane_count">Lanes</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={editData.lane_count}
-                            onChange={(e) => setEditData({...editData, lane_count: parseInt(e.target.value) || 1})}
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label htmlFor="accuracy">Accuracy Score</Label>
-                        <Input
-                          type="number"
-                          min="0"
-                          max="1"
-                          step="0.01"
-                          value={editData.accuracy}
-                          onChange={(e) => setEditData({...editData, accuracy: parseFloat(e.target.value) || 0})}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="notes">Notes</Label>
-                        <Textarea
-                          value={editData.notes}
-                          onChange={(e) => setEditData({...editData, notes: e.target.value})}
-                          placeholder="Add any notes about this frame..."
-                        />
                       </div>
 
                       <div className="flex justify-end space-x-2">
@@ -270,23 +211,11 @@ export const FramePreviewGrid = ({ sequenceId }: FramePreviewGridProps) => {
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Frame {frame.frame_number}</span>
-                  {frame.accuracy && (
-                    <Badge variant="outline" className="text-xs">
-                      {(frame.accuracy * 100).toFixed(0)}%
-                    </Badge>
-                  )}
                 </div>
-                {frame.scene_type && (
+                {frame["road-type"] && (
                   <Badge variant="secondary" className="text-xs">
-                    {frame.scene_type}
+                    {frame["road-type"]}
                   </Badge>
-                )}
-                {(frame.vehicle_count || frame.pedestrian_count) && (
-                  <div className="text-xs text-muted-foreground">
-                    {frame.vehicle_count ? `${frame.vehicle_count} vehicles` : ''}
-                    {frame.vehicle_count && frame.pedestrian_count ? ', ' : ''}
-                    {frame.pedestrian_count ? `${frame.pedestrian_count} pedestrians` : ''}
-                  </div>
                 )}
               </div>
             </CardContent>

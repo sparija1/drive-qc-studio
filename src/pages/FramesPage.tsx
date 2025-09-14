@@ -37,13 +37,9 @@ const FramesPage = () => {
   const [filters, setFilters] = useState({
     timeOfDay: 'all',
     roadType: 'all',
-    trafficDensity: 'all',
     weather: 'all',
-    accuracyThreshold: 0,
     status: 'all',
-    vehicleCountMin: 0,
-    vehicleCountMax: 100,
-    laneCount: 'all'
+    lanes: 'all'
   });
 
   const { data: project } = useProjectById(projectId || '');
@@ -52,27 +48,22 @@ const FramesPage = () => {
 
   // Extract available filter values from the data
   const availableValues = useMemo(() => {
-    const timeOfDay = [...new Set(frames.map(f => f.time_of_day).filter(Boolean))];
-    const roadType = [...new Set(frames.map(f => f.scene_type).filter(Boolean))];
-    const trafficDensity = [...new Set(frames.map(f => f.traffic_density).filter(Boolean))];
-    const weather = [...new Set(frames.map(f => f.weather_condition).filter(Boolean))];
+    const timeOfDay = [...new Set(frames.map(f => f["day-night"]).filter(Boolean))];
+    const roadType = [...new Set(frames.map(f => f["road-type"]).filter(Boolean))];
+    const weather = [...new Set(frames.map(f => f.weather).filter(Boolean))];
     const status = [...new Set(frames.map(f => f.status).filter(Boolean))];
-    const laneCount = [...new Set(frames.map(f => f.lane_count).filter(Boolean))].sort((a, b) => a - b);
+    const lanes = [...new Set(frames.map(f => f.lanes).filter(Boolean))];
     
-    return { timeOfDay, roadType, trafficDensity, weather, status, laneCount };
+    return { timeOfDay, roadType, weather, status, lanes };
   }, [frames]);
 
   // Filter frames based on current filters
   const filteredFrames = frames.filter(frame => {
-    if (filters.timeOfDay !== 'all' && frame.time_of_day !== filters.timeOfDay) return false;
-    if (filters.roadType !== 'all' && frame.scene_type !== filters.roadType) return false;
-    if (filters.trafficDensity !== 'all' && frame.traffic_density !== filters.trafficDensity) return false;
-    if (filters.weather !== 'all' && frame.weather_condition !== filters.weather) return false;
+    if (filters.timeOfDay !== 'all' && frame["day-night"] !== filters.timeOfDay) return false;
+    if (filters.roadType !== 'all' && frame["road-type"] !== filters.roadType) return false;
+    if (filters.weather !== 'all' && frame.weather !== filters.weather) return false;
     if (filters.status !== 'all' && frame.status !== filters.status) return false;
-    if (filters.laneCount !== 'all' && frame.lane_count?.toString() !== filters.laneCount) return false;
-    if ((frame.accuracy || 0) < filters.accuracyThreshold) return false;
-    if ((frame.vehicle_count || 0) < filters.vehicleCountMin) return false;
-    if ((frame.vehicle_count || 0) > filters.vehicleCountMax) return false;
+    if (filters.lanes !== 'all' && frame.lanes !== filters.lanes) return false;
     return true;
   });
 
@@ -95,28 +86,21 @@ const FramesPage = () => {
     );
   }
 
-  const getAccuracyColor = (score: number) => {
-    if (score >= 0.9) return 'text-green-600';
-    if (score >= 0.8) return 'text-yellow-600';
-    return 'text-red-600';
-  };
 
   const getTimeOfDayIcon = (timeOfDay: string) => {
     switch (timeOfDay?.toLowerCase()) {
       case 'day': return <Sun className="h-4 w-4 text-yellow-500" />;
       case 'night': return <Moon className="h-4 w-4 text-blue-400" />;
-      case 'dawn': return <Sunrise className="h-4 w-4 text-orange-400" />;
-      case 'dusk': return <Sunset className="h-4 w-4 text-purple-400" />;
       default: return <Sun className="h-4 w-4 text-gray-400" />;
     }
   };
 
   const getWeatherIcon = (weather: string) => {
     switch (weather?.toLowerCase()) {
-      case 'sunny': case 'clear': return <Sun className="h-4 w-4 text-yellow-500" />;
-      case 'rainfall': case 'rainy': return <CloudRain className="h-4 w-4 text-blue-500" />;
+      case 'sunny': return <Sun className="h-4 w-4 text-yellow-500" />;
       case 'cloudy': return <Cloud className="h-4 w-4 text-gray-500" />;
-      case 'snowfall': case 'snowy': return <CloudSnow className="h-4 w-4 text-blue-300" />;
+      case 'rainfall': return <CloudRain className="h-4 w-4 text-blue-500" />;
+      case 'snowfall': return <CloudSnow className="h-4 w-4 text-blue-300" />;
       default: return <Cloud className="h-4 w-4 text-gray-400" />;
     }
   };
@@ -234,42 +218,26 @@ const FramesPage = () => {
                       <ImageIcon className="h-12 w-12 text-muted-foreground" />
                     </div>
                     <div className="absolute top-2 right-2 flex space-x-1">
-                      {getTimeOfDayIcon(frame.time_of_day || '')}
-                      {getWeatherIcon(frame.weather_condition || '')}
-                    </div>
-                    <div className="absolute bottom-2 left-2">
-                      <Badge
-                        className={`text-xs ${getAccuracyColor(frame.accuracy || 0)} bg-background/80`}
-                        variant="outline"
-                      >
-                        {((frame.accuracy || 0) * 100).toFixed(1)}%
-                      </Badge>
+                      {getTimeOfDayIcon(frame["day-night"] || '')}
+                      {getWeatherIcon(frame.weather || '')}
                     </div>
                   </div>
                   
                   <div className="p-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-foreground">Frame #{frame.frame_number}</span>
-                      <div className="flex items-center space-x-1">
-                        {(frame.accuracy || 0) >= 0.9 ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-500" />
-                        )}
-                      </div>
                     </div>
                     
                     <div className="flex flex-wrap gap-1">
-                      {getRoadTypeBadge(frame.scene_type || '')}
-                      {frame.lane_count && (
+                      {getRoadTypeBadge(frame["road-type"] || '')}
+                      {frame.lanes && (
                         <Badge variant="outline" className="text-xs">
-                          {frame.lane_count} lanes
+                          {frame.lanes}
                         </Badge>
                       )}
                     </div>
                     
                     <div className="text-xs text-muted-foreground flex items-center justify-between">
-                      <span>Vehicles: {frame.vehicle_count || 0}</span>
                       <Badge variant="outline" className="text-xs capitalize">
                         {frame.status || 'pending'}
                       </Badge>
@@ -314,38 +282,21 @@ const FramesPage = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
-                      {getTimeOfDayIcon(selectedFrameData.time_of_day || '')}
-                      <span className="capitalize text-foreground">{selectedFrameData.time_of_day || 'Unknown'}</span>
+                      {getTimeOfDayIcon(selectedFrameData["day-night"] || '')}
+                      <span className="capitalize text-foreground">{selectedFrameData["day-night"] || 'Unknown'}</span>
                     </div>
-                    <div className="text-sm text-muted-foreground">Road: {selectedFrameData.scene_type || 'Unknown'}</div>
+                    <div className="text-sm text-muted-foreground">Road: {selectedFrameData["road-type"] || 'Unknown'}</div>
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
-                      {getWeatherIcon(selectedFrameData.weather_condition || '')}
-                      <span className="capitalize text-foreground">{selectedFrameData.weather_condition || 'Unknown'}</span>
+                      {getWeatherIcon(selectedFrameData.weather || '')}
+                      <span className="capitalize text-foreground">{selectedFrameData.weather || 'Unknown'}</span>
                     </div>
-                    <div className="text-sm text-muted-foreground">Lanes: {selectedFrameData.lane_count || 'Unknown'}</div>
+                    <div className="text-sm text-muted-foreground">Lanes: {selectedFrameData.lanes || 'Unknown'}</div>
                   </div>
                 </div>
               </div>
               
-              <div>
-                <h4 className="font-medium text-foreground mb-2">Accuracy Score</h4>
-                <div className={`text-2xl font-bold ${getAccuracyColor(selectedFrameData.accuracy || 0)}`}>
-                  {((selectedFrameData.accuracy || 0) * 100).toFixed(1)}%
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Model confidence level
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-foreground mb-2">Object Counts</h4>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>Vehicles: <span className="font-medium">{selectedFrameData.vehicle_count || 0}</span></div>
-                  <div>Pedestrians: <span className="font-medium">{selectedFrameData.pedestrian_count || 0}</span></div>
-                </div>
-              </div>
             </div>
 
             <div className="space-y-4">
@@ -360,12 +311,6 @@ const FramesPage = () => {
                 </div>
               </div>
               
-              {selectedFrameData.notes && (
-                <div>
-                  <h4 className="font-medium text-foreground mb-2">Notes</h4>
-                  <p className="text-sm text-muted-foreground">{selectedFrameData.notes}</p>
-                </div>
-              )}
               
               <div className="flex space-x-2">
                 <Button size="sm" variant="outline" className="flex-1">
