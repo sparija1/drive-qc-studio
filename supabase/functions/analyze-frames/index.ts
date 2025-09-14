@@ -143,16 +143,17 @@ serve(async (req) => {
     }
     
     for (const frame of frames) {
-      console.log(`Analyzing frame ${frame.frame_number}`);
+      console.log(`Processing frame ${frame.frame_number} with image: ${frame.image_url}`);
       
       if (!frame.image_url) {
-        console.error(`No image URL for frame ${frame.frame_number}`);
+        console.warn(`No image URL for frame ${frame.frame_number}, skipping`);
         continue;
       }
 
       try {
-        // Analyze image using AI model
+        // Analyze image using CLIP-style classification
         const classification = await analyzeImageWithModel(frame.image_url);
+        console.log(`Classification result for frame ${frame.frame_number}:`, classification);
 
         const analysisResult = {
           weather: classification.weather,
@@ -162,7 +163,7 @@ serve(async (req) => {
         };
 
         // Update frame with analysis results (matching Python CLIP model output)
-        const { error: updateError } = await supabaseClient
+        const { data: updateData, error: updateError } = await supabaseClient
           .from('frames')
           .update({
             weather_condition: analysisResult.weather?.toLowerCase(),
@@ -177,10 +178,11 @@ serve(async (req) => {
           .eq('id', frame.id);
 
         if (updateError) {
-          console.error('Error updating frame:', updateError);
+          console.error(`Error updating frame ${frame.frame_number}:`, updateError);
           continue;
         }
 
+        console.log(`Successfully updated frame ${frame.frame_number}`);
         analysisResults.push({
           frameId: frame.id,
           frameNumber: frame.frame_number,
@@ -189,14 +191,24 @@ serve(async (req) => {
 
       } catch (error) {
         console.error(`Error analyzing frame ${frame.frame_number}:`, error);
-        // Return error response if any frame fails
-        return new Response(
-          JSON.stringify({ 
-            error: `Failed to analyze frame ${frame.frame_number}: ${error.message}`,
-            frame_number: frame.frame_number
-          }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        
+        // Use fallback analysis for failed frames
+        const fallback = fallbackAnalysis(frame.image_url);
+        
+        await supabaseClient
+          .from('frames')
+          .update({
+            weather_condition: fallback.weather?.toLowerCase(),
+            time_of_day: fallback.timeOfDay?.toLowerCase(),
+            scene_type: fallback.roadType?.toLowerCase(),
+            lane_count: fallback.lanes,
+            accuracy: fallback.confidence,
+            status: 'failed',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', frame.id);
+          
+        console.log(`Applied fallback analysis for frame ${frame.frame_number}`);
       }
     }
 
