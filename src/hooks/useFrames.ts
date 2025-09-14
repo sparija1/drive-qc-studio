@@ -50,6 +50,7 @@ export interface UpdateFrameData {
   weather_condition?: string;
   traffic_density?: string;
   traffic_light_status?: string;
+  time_of_day?: string;
   accuracy?: number;
 }
 

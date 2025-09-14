@@ -10,6 +10,7 @@ import { useProjectById } from "@/hooks/useProjects";
 import { FrameFilters } from "@/components/frames/FrameFilters";
 import { ImageAnalysisButton } from "@/components/frames/ImageAnalysisButton";
 import { ServerAnalysisButton } from "@/components/frames/ServerAnalysisButton";
+import { LovableAnalysisButton } from "@/components/frames/LovableAnalysisButton";
 import { 
   Image as ImageIcon, 
   Target, 
@@ -173,6 +174,13 @@ const FramesPage = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              <LovableAnalysisButton 
+                frames={frames} 
+                onAnalysisComplete={() => {
+                  // Refresh frame data after analysis
+                  window.location.reload();
+                }}
+              />
               <ServerAnalysisButton 
                 sequenceId={sequenceId || ''} 
                 onAnalysisComplete={() => {
